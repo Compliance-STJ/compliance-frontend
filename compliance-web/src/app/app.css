@@ -1,0 +1,62 @@
+/* Estilos globais para o componente app */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #2d3748;
+  background-color: #f7fafc;
+}
+
+/* Estilos de links */
+a {
+  text-decoration: none;
+  color: #2e5d96;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #1a365d;
+}
+
+/* Estilos de botões adicionais */
+button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.app-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Responsividade adicional */
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 1rem;
+  }
+  
+  .hero h2 {
+    font-size: 1.75rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .features {
+    padding: 2rem 1rem;
+  }
+}
