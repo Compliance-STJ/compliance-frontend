@@ -2,7 +2,7 @@ services:
   frontend-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: compliance-web/Dockerfile
     container_name: frontend-app
     ports:
       - "4200:4200"

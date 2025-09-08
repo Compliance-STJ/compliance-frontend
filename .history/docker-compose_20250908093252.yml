@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Serviço do Backend (Spring Boot)
+  backend-api:
+    build:
+      context: ../compliance-backend/compliance-app
+      dockerfile: Dockerfile
+    container_name: backend-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-postgres:5433/compliance
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=12345
+    depends_on:
+      db-postgres:
+        condition: service_healthy # Garante que o banco suba antes da API
+    networks:
+      - app-network
+
+  # Serviço do Frontend (Angular)
+  frontend-app:
+    build: ./compliance-web
+    container_name: frontend-app
+    ports:
+      - "4200:4200" # Acessa via localhost:4200, container expõe na 4200
+    volumes:
+      - ./compliance-web:/app # Sincroniza seus arquivos locais com os do container
+      - /app/node_modules   
+    networks:
+      - app-network
+
+  # Serviço do Banco de Dados (Postgres)
+  db-postgres:
+    image: postgres:16-alpine
+    container_name: db-postgres
+    environment:
+      - POSTGRES_DB=compliance
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=12345
+    ports:
+      - "5433:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck: # Verificação de saúde do banco
+      test: ["CMD-SHELL", "pg_isready -U admin -d compliance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Serviço do pgAdmin para gerenciar o banco
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db-postgres
+    networks:
+      - app-network
+
+# Volumes para persistência de dados
+volumes:
+  postgres_data:
+
+# Rede para comunicação entre os containers
+networks:
+  app-network:
+    driver: bridge
