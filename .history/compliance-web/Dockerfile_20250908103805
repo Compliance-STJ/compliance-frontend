@@ -1,0 +1,18 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+RUN npm install -g @angular/cli
+COPY . .
+
+# Recebe API_URL como build-arg e define ENV para runtime
+ARG API_URL
+ENV API_URL=${API_URL:-http://backend-api:8080/api}
+
+RUN npm run build -- --configuration production || true
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app /app
+EXPOSE 4200
+CMD ["npx", "http-server", "dist", "-p", "4200", "-a", "0.0.0.0"]

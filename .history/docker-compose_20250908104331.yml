@@ -1,0 +1,29 @@
+services:
+  frontend-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: frontend-app
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - frontend-network
+
+  # Serviço que verifica se o backend respondeu corretamente
+  backend-healthcheck:
+    image: curlimages/curl:8.2.1
+    container_name: backend-healthcheck
+    depends_on:
+      - backend-api
+    command: ["/bin/sh","-c","for i in $(seq 1 20); do echo \"checking backend... ($i)\"; if curl -fsS http://backend-api:8080/api/status; then echo 'backend ok'; exit 0; else sleep 3; fi; done; echo 'backend did not respond in time'; exit 1"]
+    networks:
+      - app-network
+
+networks:
+  frontend-network:
+    driver: bridge
