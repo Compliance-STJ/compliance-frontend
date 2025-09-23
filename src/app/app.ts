@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { BackendStatusComponent } from './components/backend-status.component';
+import { BackendStatusComponent } from './components/backend-status/backend-status.component';
 
 @Component({
   selector: 'app-root',

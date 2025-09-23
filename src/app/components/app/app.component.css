@@ -1,0 +1,130 @@
+/* Global Styles and Layout */
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 300px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Logo Section */
+.logo {
+  padding: 2rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+}
+
+.logo h1 {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.logo .subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* User Profile */
+.user-profile {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(30, 60, 114, 0.05);
+}
+
+.profile-selector {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #1e3c72;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.user-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Navigation */
+.nav-menu {
+  padding: 1rem 0;
+}
+
+.nav-section {
+  margin-bottom: 1rem;
+}
+
+.nav-section-title {
+  padding: 0.5rem 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-item {
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #4a5568;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: rgba(30, 60, 114, 0.1);
+  border-left-color: #1e3c72;
+  color: #1e3c72;
+  font-weight: 500;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: transparent;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 250px;
+  }
+  
+  .logo {
+    padding: 1.5rem;
+  }
+  
+  .logo h1 {
+    font-size: 1.5rem;
+  }
+}

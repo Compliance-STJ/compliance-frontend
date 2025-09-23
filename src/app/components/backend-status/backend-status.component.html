@@ -1,0 +1,27 @@
+<div class="backend-status-container">
+  <button 
+    (click)="checkBackendStatus()" 
+    class="status-btn"
+    [ngClass]="{'online': isOnline === true, 'offline': isOnline === false, 'unknown': isOnline === null}">
+    Verificar Status do Backend
+  </button>
+  
+  <div class="status-result" *ngIf="isOnline !== null">
+    <div class="status-indicator">
+      <span class="status-text">
+        Backend está: 
+        <strong [ngClass]="{'online-text': isOnline, 'offline-text': !isOnline}">
+          {{ isOnline ? 'Online' : 'Offline' }}
+        </strong>
+      </span>
+    </div>
+    
+    <div class="status-message" *ngIf="statusMessage">
+      <p>Mensagem: <span class="message-text">{{ statusMessage }}</span></p>
+    </div>
+  </div>
+  
+  <div class="loading-indicator" *ngIf="checking">
+    Verificando...
+  </div>
+</div>

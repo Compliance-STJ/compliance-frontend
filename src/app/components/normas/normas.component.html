@@ -1,0 +1,118 @@
+<div class="card">
+  <div class="card-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h2 class="card-title">
+          <span class="icon">📚</span>
+          Hierarquia de Normas, Obrigações e Responsáveis
+        </h2>
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" (click)="adicionarNovaNorma()">
+          <span class="icon">+</span>
+          Nova Norma
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-content">
+    <div class="normas-list">
+      <div *ngFor="let norma of normasData" class="norma-item">
+        <!-- Norma Header -->
+        <div class="norma-header" (click)="toggleNorma(norma.id)">
+          <div class="norma-info">
+            <span class="expand-icon">
+              {{ isNormaExpanded(norma.id) ? '▼' : '▶' }}
+            </span>
+            <span class="norma-icon">📚</span>
+            <div class="norma-details">
+              <h3 class="norma-name">{{ norma.nome }}</h3>
+              <p class="norma-meta">{{ norma.numero }} • {{ norma.categoria }}</p>
+            </div>
+          </div>
+          <div class="norma-status">
+            <span class="badge" [ngClass]="getSituacaoClass(norma.situacao)">
+              {{ norma.situacao }}
+            </span>
+            <span class="obrigacoes-count">{{ norma.obrigacoes.length }} obrigação(ões)</span>
+          </div>
+        </div>
+
+        <!-- Obrigações (expandidas) -->
+        <div *ngIf="isNormaExpanded(norma.id)" class="obrigacoes-container">
+          <div *ngFor="let obrigacao of norma.obrigacoes" class="obrigacao-item">
+            <!-- Obrigação Header -->
+            <div class="obrigacao-header" (click)="toggleObrigacao(obrigacao.id)">
+              <div class="obrigacao-info">
+                <span class="expand-icon">
+                  {{ isObrigacaoExpanded(obrigacao.id) ? '▼' : '▶' }}
+                </span>
+                <span class="obrigacao-icon">📋</span>
+                <div class="obrigacao-details">
+                  <h4 class="obrigacao-title">{{ obrigacao.titulo }}</h4>
+                  <p class="obrigacao-meta">
+                    Prazo: {{ obrigacao.prazo }} • {{ obrigacao.evidencias.length }} evidência(s)
+                  </p>
+                </div>
+              </div>
+              <div class="obrigacao-status">
+                <div class="status-info">
+                  <span class="status-icon">{{ getSituacaoIcon(obrigacao.situacao) }}</span>
+                  <span class="badge badge-sm" [ngClass]="getSituacaoClass(obrigacao.situacao)">
+                    {{ obrigacao.situacao }}
+                  </span>
+                </div>
+                <span class="responsaveis-count">{{ obrigacao.responsaveis.length }} responsável(eis)</span>
+              </div>
+            </div>
+
+            <!-- Responsáveis (expandidos) -->
+            <div *ngIf="isObrigacaoExpanded(obrigacao.id)" class="responsaveis-container">
+              <div class="responsaveis-section">
+                <div class="responsaveis-header">
+                  <span class="responsaveis-icon">👥</span>
+                  <h5 class="responsaveis-title">Responsáveis</h5>
+                  <button class="btn btn-ghost btn-sm" (click)="adicionarResponsavel(obrigacao.id)">
+                    <span class="icon">+</span>
+                    Adicionar
+                  </button>
+                </div>
+                
+                <div class="responsaveis-list">
+                  <div *ngFor="let responsavel of obrigacao.responsaveis" class="responsavel-item">
+                    <div class="responsavel-info">
+                      <div class="avatar">
+                        {{ getInitials(responsavel.nome) }}
+                      </div>
+                      <div class="responsavel-details">
+                        <p class="responsavel-name">{{ responsavel.nome }}</p>
+                        <p class="responsavel-meta">{{ responsavel.cargo }} • {{ responsavel.departamento }}</p>
+                      </div>
+                    </div>
+                    <div class="responsavel-actions">
+                      <button class="btn btn-ghost btn-icon" (click)="editarResponsavel(responsavel.id)">
+                        ✏️
+                      </button>
+                      <button class="btn btn-ghost btn-icon" (click)="visualizarResponsavel(responsavel.id)">
+                        👁️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botão Nova Obrigação -->
+          <div class="nova-obrigacao">
+            <button class="btn btn-outline btn-sm" (click)="adicionarNovaObrigacao(norma.id)">
+              <span class="icon">+</span>
+              Nova Obrigação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
