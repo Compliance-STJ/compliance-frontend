@@ -49,9 +49,12 @@ export class AppComponent {
           section: 'Gestão', 
           items: [
             { id: 'normas', name: 'Normas', icon: '📄', route: 'normas' },
-            { id: 'obrigacoes', name: 'Obrigações', icon: '✅', route: 'situacoes-obrigacao' },
+            { id: 'origens', name: 'Origens', icon: '🏢', route: 'origens' },
+            { id: 'obrigatoriedades', name: 'Obrigatoriedades', icon: '⚖️', route: 'obrigatoriedades' },
+            { id: 'obrigacoes', name: 'Situações de Obrigações', icon: '✅', route: 'situacoes-obrigacao' },
             { id: 'situacoes-norma', name: 'Situações de Norma', icon: '📋', route: 'situacoes-norma' },
-            { id: 'relatorios', name: 'Relatórios', icon: '📈', route: 'relatorios' }
+            { id: 'unidades', name: 'Unidades Responsáveis', icon: '🏛️', route: 'unidades' },
+            // { id: 'relatorios', name: 'Relatórios', icon: '📈', route: 'relatorios' }
           ]
         },
         { 

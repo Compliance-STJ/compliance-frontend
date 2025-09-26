@@ -1,0 +1,100 @@
+<div class="unidades-container">
+  <div class="header-row">
+    <div class="title-section">
+      <h1>Gestão de Unidades Responsáveis</h1>
+    </div>
+    <div class="search-section">
+      <div class="form-group">
+        <label for="busca">Buscar unidades</label>
+        <input id="busca" type="text" [(ngModel)]="termoBusca" placeholder="Nome ou sigla..." class="form-control">
+        <button *ngIf="termoBusca" (click)="limparBusca()" class="btn-clear">Limpar</button>
+      </div>
+      <button (click)="buscarUnidades()" class="btn btn-primary">Buscar</button>
+    </div>
+  </div>
+  
+  <div class="estatisticas-row">
+    <div class="estat-card">
+      <div class="numero">{{ estatisticas.total }}</div>
+      <div class="label">Total de Unidades</div>
+    </div>
+    
+    <div class="estat-card">
+      <div class="numero">{{ estatisticas.inativas }}</div>
+      <div class="label">Unidades Inativas</div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Sigla</th>
+          <th>Responsável</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let unidade of unidades">
+          <td>{{ unidade.id }}</td>
+          <td>
+            <strong>{{ unidade.nome }}</strong>
+            <div *ngIf="unidade.descricao" class="descricao-texto">
+              {{ unidade.descricao }}
+            </div>
+          </td>
+          <td><strong>{{ unidade.sigla }}</strong></td>
+          <td>
+            <div>{{ unidade.responsavel || '-' }}</div>
+            <div *ngIf="unidade.email" class="email-texto">
+              {{ unidade.email }}
+            </div>
+          </td>
+          <td class="status-cell">
+            <div *ngIf="unidade.ativo" class="status-ativo">
+              ✓ Ativo
+            </div>
+            <div *ngIf="!unidade.ativo" class="status-inativo">
+              ✗ Inativo
+          </div>
+        </td>
+      </ng-container>
+  
+      <!-- Ações -->
+      <ng-container matColumnDef="acoes">
+        <th mat-header-cell *matHeaderCellDef> Ações </th>
+        <td mat-cell *matCellDef="let unidade" class="actions-cell">
+          <button mat-icon-button color="primary" matTooltip="Editar" class="action-button">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" matTooltip="Excluir" class="action-button">
+            <mat-icon>delete</mat-icon>
+            </div>
+          </td>
+          <td>
+            <button (click)="abrirDialogConfirmacao(unidade, unidade.ativo ? 'inativar' : 'ativar')" 
+                    class="btn btn-sm" 
+                    [class.btn-warning]="unidade.ativo" 
+                    [class.btn-success]="!unidade.ativo">
+              {{ unidade.ativo ? 'Inativar' : 'Ativar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Estado vazio -->
+  <div *ngIf="!loading && unidades.length === 0" class="empty-state">
+    <h2>Nenhuma unidade encontrada</h2>
+    <p>Não foram encontradas unidades para os critérios de busca.</p>
+  </div>
+
+  <!-- Overlay de carregamento -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner">Carregando...</div>
+  </div>
+</div>

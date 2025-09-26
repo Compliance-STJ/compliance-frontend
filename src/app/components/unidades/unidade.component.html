@@ -1,0 +1,284 @@
+<div class="main-content">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Unidades Responsáveis</h1>
+    <p class="page-subtitle">Gerenciamento das unidades responsáveis por normas e obrigações de compliance</p>
+  </div>
+
+  <!-- Mensagens -->
+  <div *ngIf="erro || sucesso">
+    <div *ngIf="erro" class="alert alert-error">
+      <i class="icon">✗</i>
+      {{erro}}
+    </div>
+    <div *ngIf="sucesso" class="alert alert-success">
+      <i class="icon">✓</i>
+      {{sucesso}}
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.total}}</div>
+      <div class="metric-label">Total de Unidades</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.ativas}}</div>
+      <div class="metric-label">Unidades Ativas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.inativas}}</div>
+      <div class="metric-label">Unidades Inativas</div>
+    </div>
+  </div>
+
+  <!-- Formulário -->
+  <div *ngIf="mostrarFormulario" class="card form-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        {{unidadeEditando ? 'Editar Unidade' : 'Nova Unidade'}}
+      </h3>
+      <button type="button" class="btn btn-secondary" (click)="cancelar()">
+        <i class="icon">✗</i>
+        Cancelar
+      </button>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="salvar()" #unidadeForm="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="nome">Nome *</label>
+            <input
+              type="text"
+              id="nome"
+              name="nome"
+              class="form-input"
+              [(ngModel)]="unidadeSelecionada.nome"
+              required
+              maxlength="100"
+              placeholder="Digite o nome da unidade">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="sigla">Sigla *</label>
+            <input
+              type="text"
+              id="sigla"
+              name="sigla"
+              class="form-input"
+              [(ngModel)]="unidadeSelecionada.sigla"
+              required
+              maxlength="20"
+              placeholder="Ex: STJ, TJ, CNJ">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ativo">Status</label>
+            <select
+              id="ativo"
+              name="ativo"
+              class="form-select"
+              [(ngModel)]="unidadeSelecionada.ativo"
+              required>
+              <option [value]="true">Ativa</option>
+              <option [value]="false">Inativa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="descricao">Descrição</label>
+          <textarea
+            id="descricao"
+            name="descricao"
+            class="form-textarea"
+            [(ngModel)]="unidadeSelecionada.descricao"
+            maxlength="500"
+            rows="3"
+            placeholder="Digite uma descrição para a unidade">
+          </textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="email">E-mail de Contato</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              [(ngModel)]="unidadeSelecionada.email"
+              placeholder="E-mail para contato">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="telefone">Telefone</label>
+            <input
+              type="tel"
+              id="telefone"
+              name="telefone"
+              class="form-input"
+              [(ngModel)]="unidadeSelecionada.telefone"
+              placeholder="Telefone para contato">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="responsavel">Responsável</label>
+          <input
+            type="text"
+            id="responsavel"
+            name="responsavel"
+            class="form-input"
+            [(ngModel)]="unidadeSelecionada.responsavel"
+            placeholder="Nome do responsável pela unidade">
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!unidadeForm.form.valid || carregando">
+            <i class="icon">💾</i>
+            {{carregando ? 'Salvando...' : 'Salvar'}}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="cancelar()">
+            <i class="icon">✗</i>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Unidades -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Unidades Cadastradas ({{ unidades.length }})</h3>
+    </div>
+
+    <!-- Ações e Filtros -->
+    <div class="actions-panel">
+      <div class="actions-left">
+        <button class="btn btn-primary" (click)="novaUnidadeFormulario()">
+          <i class="icon">+</i>
+          Nova Unidade
+        </button>
+        
+        <div class="filter-buttons">
+          <button 
+            class="btn filter-btn"
+            [class.active]="filtroAtivo === 'todas'"
+            (click)="alterarFiltro('todas')">
+            Todas
+          </button>
+          <button 
+            class="btn filter-btn"
+            [class.active]="filtroAtivo === 'ativas'"
+            (click)="alterarFiltro('ativas')">
+            Ativas
+          </button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          class="form-input"
+          placeholder="Buscar por nome ou sigla..."
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="buscar()">
+        <button class="btn btn-primary" (click)="buscar()">
+          <i class="icon">🔍</i>
+          Buscar
+        </button>
+      </div>
+    </div>
+    
+    <!-- Loading -->
+    <div *ngIf="carregando" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando unidades...</p>
+    </div>
+
+    <!-- Estado vazio -->
+    <div *ngIf="!carregando && unidades.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>Nenhuma unidade encontrada</h3>
+      <p>Clique em "Nova Unidade" para começar</p>
+      <button class="btn btn-primary" (click)="novaUnidadeFormulario()">
+        <i class="icon">+</i>
+        Criar primeira unidade
+      </button>
+    </div>
+
+    <!-- Tabela de unidades -->
+    <div *ngIf="!carregando && unidades.length > 0" class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Sigla</th>
+            <th>Nome</th>
+            <th>Responsável</th>
+            <th>Contato</th>
+            <th>Status</th>
+            <th>Criado em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let unidade of unidades">
+            <td>
+              <span class="sigla-badge">{{unidade.sigla}}</span>
+            </td>
+            <td>
+              <strong>{{unidade.nome}}</strong>
+              <div class="descricao-mini" *ngIf="unidade.descricao">{{unidade.descricao}}</div>
+            </td>
+            <td>{{unidade.responsavel || '-'}}</td>
+            <td>
+              <div *ngIf="unidade.email">
+                <span class="contato-item">✉️ {{unidade.email}}</span>
+              </div>
+              <div *ngIf="unidade.telefone">
+                <span class="contato-item">📞 {{unidade.telefone}}</span>
+              </div>
+              <span *ngIf="!unidade.email && !unidade.telefone">-</span>
+            </td>
+            <td>
+              <span 
+                class="status-badge" 
+                [ngClass]="getStatusClass(unidade)"
+                (click)="alternarStatus(unidade); $event.stopPropagation()"
+                title="Clique para alterar o status">
+                {{getStatusText(unidade)}}
+              </span>
+            </td>
+            <td>{{formatarData(unidade.dataCriacao)}}</td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="action-btn btn-edit"
+                  (click)="editarUnidade(unidade)"
+                  title="Editar">
+                  <i class="icon">✏️</i>
+                </button>
+                
+                <button
+                  class="action-btn btn-delete"
+                  (click)="remover(unidade)"
+                  title="Remover">
+                  <i class="icon">🗑️</i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

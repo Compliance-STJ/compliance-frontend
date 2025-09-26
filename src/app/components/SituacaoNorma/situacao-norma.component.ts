@@ -173,17 +173,94 @@ export class SituacaoNormaComponent implements OnInit {
   // Alternar status ativo/inativo
   alternarStatus(situacao: SituacaoNorma): void {
     const novoStatus = !situacao.ativo;
+    const mensagem = novoStatus
+      ? `Tem certeza que deseja ativar a situação "${situacao.descricao}"?`
+      : `Tem certeza que deseja desativar a situação "${situacao.descricao}"?`;
+      
+    if (confirm(mensagem)) {
+      const dto: SituacaoNormaDTO = {
+        id: situacao.id,
+        codigo: situacao.codigo,
+        descricao: situacao.descricao,
+        ativo: novoStatus
+      };
+
+      this.situacaoNormaService.atualizar(situacao.id!, dto).subscribe({
+        next: () => {
+          situacao.ativo = novoStatus;
+          this.mostrarSucesso(`Situação ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
+        },
+        error: (erro) => {
+          this.mostrarErro('Erro ao alterar status da situação');
+          console.error('Erro:', erro);
+        }
+      });
+    }
+  }
+
+  // Track by function para performance da tabela
+  trackBySituacao(index: number, item: SituacaoNorma): number {
+    return item.id || index;
+  }
+
+  // Filtros e busca
+  filtroAtivo = 'todas';
+  termoBusca = '';
+
+  alterarFiltro(filtro: string): void {
+    this.filtroAtivo = filtro;
+    this.aplicarFiltros();
+  }
+
+  buscar(): void {
+    this.aplicarFiltros();
+  }
+
+  cancelar(): void {
+    this.mostrarFormulario = false;
+    this.editando = false;
+    this.formulario = {
+      codigo: '',
+      descricao: '',
+      ativo: true
+    };
+  }
+
+  aplicarFiltros(): void {
+    // Implementar filtros se necessário
+    this.carregarSituacoes();
+  }
+
+  // Métodos para status
+  getStatusClass(situacao: SituacaoNorma): string {
+    return situacao.ativo ? 'status-active' : 'status-inactive';
+  }
+
+  getStatusText(situacao: SituacaoNorma): string {
+    return situacao.ativo ? 'Ativa' : 'Inativa';
+  }
+
+  // Ações da tabela
+  ativar(situacao: SituacaoNorma): void {
+    situacao.ativo = true;
+    this.atualizarStatus(situacao);
+  }
+
+  inativar(situacao: SituacaoNorma): void {
+    situacao.ativo = false;
+    this.atualizarStatus(situacao);
+  }
+
+  atualizarStatus(situacao: SituacaoNorma): void {
     const dto: SituacaoNormaDTO = {
-      id: situacao.id,
       codigo: situacao.codigo,
       descricao: situacao.descricao,
-      ativo: novoStatus
+      ativo: situacao.ativo
     };
 
     this.situacaoNormaService.atualizar(situacao.id!, dto).subscribe({
       next: () => {
-        situacao.ativo = novoStatus;
-        this.mostrarSucesso(`Situação ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
+        this.mostrarSucesso(`Situação ${situacao.ativo ? 'ativada' : 'desativada'} com sucesso!`);
       },
       error: (erro) => {
         this.mostrarErro('Erro ao alterar status da situação');
@@ -192,8 +269,22 @@ export class SituacaoNormaComponent implements OnInit {
     });
   }
 
-  // Track by function para performance da tabela
-  trackBySituacao(index: number, item: SituacaoNorma): number {
-    return item.id || index;
+  excluir(situacao: SituacaoNorma): void {
+    if (confirm(`Tem certeza que deseja excluir a situação "${situacao.codigo}"?`)) {
+      this.excluirSituacao(situacao);
+    }
+  }
+
+  // Formatação de data
+  formatarData(data: string | undefined): string {
+    if (!data) return '-';
+    
+    // Se a data já contém informação de hora (ISO format), usa diretamente
+    if (data.includes('T')) {
+      return new Date(data).toLocaleDateString('pt-BR');
+    }
+    
+    // Se é apenas uma data (YYYY-MM-DD), adiciona o horário
+    return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
   }
 }

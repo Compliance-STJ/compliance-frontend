@@ -17,24 +17,6 @@
     </div>
   </div>
 
-  <!-- Ações principais -->
-  <div class="actions">
-    <button 
-      class="btn btn-primary" 
-      (click)="novaSituacao()"
-      [disabled]="carregando">
-      <i class="icon">+</i>
-      Nova Situação
-    </button>
-    <button 
-      class="btn btn-secondary" 
-      (click)="carregarSituacoes()"
-      [disabled]="carregando">
-      <i class="icon">🔄</i>
-      Atualizar
-    </button>
-  </div>
-
   <!-- Loading -->
   <div class="loading" *ngIf="carregando">
     <div class="spinner"></div>
@@ -112,6 +94,24 @@
       <h3>Situações Cadastradas ({{ situacoes.length }})</h3>
     </div>
 
+    <!-- Ações principais -->
+    <div class="actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="novaSituacao()"
+        [disabled]="carregando">
+        <i class="icon">+</i>
+        Nova Situação
+      </button>
+      <!-- <button 
+        class="btn btn-secondary" 
+        (click)="carregarSituacoes()"
+        [disabled]="carregando">
+        <i class="icon">🔄</i>
+        Atualizar
+      </button> -->
+    </div>
+
     <div class="table-responsive">
       <table class="table">
         <thead>
@@ -135,8 +135,8 @@
                 class="status-badge" 
                 [class.status-active]="situacao.ativo"
                 [class.status-inactive]="!situacao.ativo"
-                (click)="alternarStatus(situacao)"
-                title="Clique para alterar status">
+                (click)="alternarStatus(situacao); $event.stopPropagation()"
+                title="Clique para alterar o status">
                 {{ situacao.ativo ? 'Ativo' : 'Inativo' }}
               </span>
             </td>

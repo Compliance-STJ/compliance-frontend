@@ -1,0 +1,274 @@
+<div class="main-content">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Origens</h1>
+    <p class="page-subtitle">Gerenciamento das origens de normas e obrigações</p>
+  </div>
+
+  <!-- Mensagens -->
+  <div *ngIf="erro || sucesso">
+    <div *ngIf="erro" class="alert alert-error">
+      <i class="icon">✗</i>
+      {{erro}}
+    </div>
+    <div *ngIf="sucesso" class="alert alert-success">
+      <i class="icon">✓</i>
+      {{sucesso}}
+    </div>
+  </div>
+
+  <!-- Estatísticas (opcional) -->
+  <!-- <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.total}}</div>
+      <div class="metric-label">Total de Origens</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.ativas}}</div>
+      <div class="metric-label">Origens Ativas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.inativas}}</div>
+      <div class="metric-label">Origens Inativas</div>
+    </div>
+  </div> -->
+
+  <!-- Formulário -->
+  <div *ngIf="mostrarFormulario" class="card form-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        {{origemEditando ? 'Editar Origem' : 'Nova Origem'}}
+      </h3>
+      <button type="button" class="btn btn-secondary" (click)="cancelar()">
+        <i class="icon">✗</i>
+        Cancelar
+      </button>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="salvar()" #origemForm="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="nome">Nome *</label>
+            <input
+              type="text"
+              id="nome"
+              name="nome"
+              class="form-input"
+              [(ngModel)]="origemSelecionada.nome"
+              required
+              maxlength="100"
+              placeholder="Digite o nome da origem">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ativo">Status</label>
+            <select
+              id="ativo"
+              name="ativo"
+              class="form-select"
+              [(ngModel)]="origemSelecionada.ativo"
+              required>
+              <option [value]="true">Ativa</option>
+              <option [value]="false">Inativa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="descricao">Descrição</label>
+          <textarea
+            id="descricao"
+            name="descricao"
+            class="form-textarea"
+            [(ngModel)]="origemSelecionada.descricao"
+            maxlength="500"
+            rows="3"
+            placeholder="Digite uma descrição para a origem">
+          </textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="dataInicio">Data de Início</label>
+            <input
+              type="datetime-local"
+              id="dataInicio"
+              name="dataInicio"
+              class="form-input"
+              [(ngModel)]="origemSelecionada.dataInicio">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dataFim">Data de Fim</label>
+            <input
+              type="datetime-local"
+              id="dataFim"
+              name="dataFim"
+              class="form-input"
+              [(ngModel)]="origemSelecionada.dataFim">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!origemForm.form.valid || carregando">
+            <i class="icon">💾</i>
+            {{carregando ? 'Salvando...' : 'Salvar'}}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="cancelar()">
+            <i class="icon">✗</i>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Origens -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Origens Cadastradas ({{ origens.length }})</h3>
+      <!-- <span class="card-subtitle">
+        Mostrando {{origens.length}} origem(ns)
+      </span> -->
+    </div>
+
+    <!-- Ações e Filtros -->
+    <div class="actions-panel">
+      <div class="actions-left">
+        <button class="btn btn-primary" (click)="novaOrigemFormulario()">
+          <i class="icon">+</i>
+          Nova Origem
+        </button>
+        
+        <div class="filter-buttons">
+          <!-- <button 
+            class="btn filter-btn"
+            [class.active]="filtroAtivo === 'todas'"
+            (click)="alterarFiltro('todas')">
+            Todas
+          </button>
+          <button 
+            class="btn filter-btn"
+            [class.active]="filtroAtivo === 'ativas'"
+            (click)="alterarFiltro('ativas')">
+            Ativas
+          </button> -->
+          <!-- <button 
+            class="btn filter-btn"
+            [class.active]="filtroAtivo === 'vigentes'"
+            (click)="alterarFiltro('vigentes')">
+            Vigentes
+          </button> -->
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          class="form-input"
+          placeholder="Buscar por nome..."
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="buscar()">
+        <button class="btn btn-primary" (click)="buscar()">
+          <i class="icon">🔍</i>
+          Buscar
+        </button>
+      </div>
+    </div>
+    
+    <!-- Loading -->
+    <div *ngIf="carregando" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando origens...</p>
+    </div>
+
+    <!-- Estado vazio -->
+    <div *ngIf="!carregando && origens.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>Nenhuma origem encontrada</h3>
+      <p>Clique em "Nova Origem" para começar</p>
+      <button class="btn btn-primary" (click)="novaOrigemFormulario()">
+        <i class="icon">+</i>
+        Criar primeira origem
+      </button>
+    </div>
+
+    <!-- Tabela de origens -->
+    <div *ngIf="!carregando && origens.length > 0" class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Data Início</th>
+            <th>Data Fim</th>
+            <th>Criado em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let origem of origens">
+            <td>
+              <strong>{{origem.nome}}</strong>
+            </td>
+            <td>
+              <span class="descricao">{{origem.descricao || '-'}}</span>
+            </td>
+            <td>
+              <span 
+                class="status-badge" 
+                [ngClass]="getStatusClass(origem)"
+                (click)="alternarStatus(origem)"
+                title="Clique para alterar status">
+                {{getStatusText(origem)}}
+              </span>
+            </td>
+            <td>{{formatarData(origem.dataInicio)}}</td>
+            <td>{{formatarData(origem.dataFim)}}</td>
+            <td>{{formatarData(origem.dataCriacao)}}</td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="action-btn btn-edit"
+                  (click)="editarOrigem(origem)"
+                  title="Editar">
+                  <i class="icon">✏️</i>
+                </button>
+                
+                <!-- <button
+                  *ngIf="!origem.ativo"
+                  class="action-btn btn-approve"
+                  (click)="ativar(origem)"
+                  title="Ativar">
+                  <i class="icon">✅</i>
+                </button> -->
+                
+                <!-- <button
+                  *ngIf="origem.ativo"
+                  class="action-btn btn-review"
+                  (click)="inativar(origem)"
+                  title="Inativar">
+                  <i class="icon">⏸️</i>
+                </button> -->
+                
+                <button
+                  class="action-btn btn-delete"
+                  (click)="remover(origem)"
+                  title="Remover">
+                  <i class="icon">🗑️</i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

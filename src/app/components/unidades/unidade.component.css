@@ -1,0 +1,483 @@
+/* Estilos gerais do componente */
+.main-content {
+  padding: 2rem;
+  background: #2a5298;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+/* Cabeçalho */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+  color: #333;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Cards e containers */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.card-subtitle {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.card-body {
+  padding: 1.5rem 2rem;
+}
+
+.form-card {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* Métricas */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2a5298;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+}
+
+/* Formulários */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 1rem;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #2a5298;
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.2);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Botões */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2a5298;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1e3c6e;
+}
+
+.btn-secondary {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ícones */
+.icon {
+  font-style: normal;
+}
+
+/* Alertas e mensagens */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.alert-error {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  color: #666;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid #2a5298;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estado vazio */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  text-align: center;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Filtros e busca */
+.actions-panel {
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.actions-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.filter-btn.active {
+  background: rgba(42, 82, 152, 0.1);
+}
+
+.search-bar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-bar .form-input {
+  width: 250px;
+}
+
+.search-bar .btn {
+  padding: 0.75rem 1rem;
+}
+
+/* Tabela */
+.table-container {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+  background: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(42, 82, 152, 0.05);
+}
+
+.table .row-selected {
+  background: rgba(42, 82, 152, 0.1);
+}
+
+/* Badges e status */
+.sigla-badge {
+  background: #2a5298;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.descricao-mini {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.contato-item {
+  font-size: 0.875rem;
+  color: #666;
+  display: block;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  user-select: none;
+  display: inline-block;
+  position: relative;
+}
+
+.status-ativa {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.status-inativa {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.status-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.status-badge:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Botões de ação */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit {
+  background: rgba(0, 123, 255, 0.1);
+  color: #0d6efd;
+}
+
+.btn-edit:hover {
+  background: rgba(0, 123, 255, 0.2);
+}
+
+.btn-delete {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.btn-delete:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-bar {
+    width: 100%;
+  }
+  
+  .search-bar .form-input {
+    width: 100%;
+  }
+  
+  .table th:not(:first-child):not(:last-child),
+  .table td:not(:first-child):not(:last-child) {
+    display: none;
+  }
+  
+  .table th:first-child,
+  .table td:first-child {
+    width: 70%;
+  }
+  
+  .table th:last-child,
+  .table td:last-child {
+    width: 30%;
+  }
+}

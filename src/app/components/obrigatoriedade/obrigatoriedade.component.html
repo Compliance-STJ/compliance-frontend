@@ -1,0 +1,334 @@
+<div class="obrigatoriedade-container">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Obrigatoriedades</h1>
+    <p class="page-subtitle">Gerencie os tipos de obrigatoriedade do sistema de compliance</p>
+  </div>
+
+  <!-- Mensagens -->
+  <div class="messages" *ngIf="erro">
+    <div class="alert alert-error">
+      <i class="icon">✗</i>
+      {{ erro }}
+    </div>
+  </div>
+
+  <!-- Estatísticas (opcional) -->
+  <!-- <div class="stats-row" *ngIf="estatisticas">
+    <div class="stat-card">
+      <div class="stat-number">{{ estatisticas.total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ estatisticas.ativas }}</div>
+      <div class="stat-label">Ativas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ estatisticas.vigentes }}</div>
+      <div class="stat-label">Vigentes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ estatisticas.inativas }}</div>
+      <div class="stat-label">Inativas</div>
+    </div>
+  </div> -->
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="carregando">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- Formulário -->
+  <div class="form-container" *ngIf="exibirFormulario">
+    <div class="form-header">
+      <h2>{{ modoEdicao ? 'Editar' : 'Nova' }} Obrigatoriedade</h2>
+    </div>
+    
+    <form (ngSubmit)="salvarObrigatoriedade()" #obrigatoriedadeForm="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="nome">Nome *</label>
+          <input 
+            type="text" 
+            id="nome"
+            [(ngModel)]="novaObrigatoriedade.nome" 
+            name="nome"
+            required
+            maxlength="100"
+            placeholder="Ex: Obrigatório, Recomendado, Opcional..."
+            class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="ordem">Ordem</label>
+          <input 
+            type="number" 
+            id="ordem"
+            [(ngModel)]="novaObrigatoriedade.ordem" 
+            name="ordem"
+            min="1"
+            placeholder="Ordem de exibição"
+            class="form-input">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea 
+          id="descricao"
+          [(ngModel)]="novaObrigatoriedade.descricao" 
+          name="descricao"
+          maxlength="1000"
+          rows="3"
+          placeholder="Descrição detalhada da obrigatoriedade..."
+          class="form-textarea"></textarea>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="dataInicio">Data de Início</label>
+          <input 
+            type="date" 
+            id="dataInicio"
+            [(ngModel)]="novaObrigatoriedade.dataInicio" 
+            name="dataInicio"
+            class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="dataFim">Data de Fim</label>
+          <input 
+            type="date" 
+            id="dataFim"
+            [(ngModel)]="novaObrigatoriedade.dataFim" 
+            name="dataFim"
+            class="form-input">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="novaObrigatoriedade.ativo" 
+            name="ativo"
+            class="form-checkbox"> 
+          Obrigatoriedade ativa
+        </label>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="carregando || !obrigatoriedadeForm.form.valid">
+          <i class="icon">💾</i>
+          {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelarEdicao()">
+          <i class="icon">✗</i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de Obrigatoriedades -->
+  <div class="table-container" *ngIf="!exibirFormulario && !carregando">
+    <div class="table-header">
+      <h3>Obrigatoriedades Cadastradas ({{ obrigatoriedades.length }})</h3>
+    </div>
+    
+    <!-- Ações principais -->
+    <div class="actions">
+      <button class="btn btn-primary" (click)="novaObrigatoriedadeFormulario()">
+        <i class="icon">+</i>
+        Nova Obrigatoriedade
+      </button>
+      
+      <!-- <button class="btn btn-secondary" (click)="carregarObrigatoriedades()">
+        <i class="icon">🔄</i>
+        Atualizar
+      </button> -->
+      
+      <!-- <div class="filter-buttons">
+        <button 
+          class="btn filter-btn"
+          [class.active]="filtroAtivo === ''"
+          (click)="filtroAtivo = ''; aplicarFiltros()">
+          Todas
+        </button>
+        <button 
+          class="btn filter-btn"
+          [class.active]="filtroAtivo === 'true'"
+          (click)="filtroAtivo = 'true'; aplicarFiltros()">
+          Ativas
+        </button>
+      </div> -->
+      
+      <!-- <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="termoBusca" 
+          (keyup.enter)="aplicarFiltros()"
+          placeholder="Buscar por nome ou descrição..."
+          class="form-input">
+        <button class="btn btn-primary" (click)="aplicarFiltros()">
+          <i class="icon">🔍</i>
+          Buscar
+        </button>
+      </div> -->
+    </div>
+    
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Vigência</th>
+            <th>Ordem</th>
+            <th>Criação</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let obrigatoriedade of obrigatoriedadesFiltradas" 
+              (click)="selecionarObrigatoriedade(obrigatoriedade)"
+              [class.selected]="obrigatoriedadeSelecionada?.id === obrigatoriedade.id">
+            <td>
+              <div class="cell-content">
+                <strong>{{ obrigatoriedade.nome }}</strong>
+              </div>
+            </td>
+            <td>
+              <div class="cell-content">
+                {{ obrigatoriedade.descricao || '-' }}
+              </div>
+            </td>
+            <td>
+              <div class="status-badges">
+                <span 
+                  class="badge" 
+                  [class.active]="obrigatoriedade.ativo" 
+                  [class.inactive]="!obrigatoriedade.ativo"
+                  (click)="alternarStatus(obrigatoriedade); $event.stopPropagation()"
+                  title="Clique para alterar status"
+                  style="cursor: pointer;">
+                  {{ obrigatoriedade.ativo ? 'Ativo' : 'Inativo' }}
+                </span>
+                <!-- <span class="badge vigente" *ngIf="isVigente(obrigatoriedade)">
+                  Vigente
+                </span> -->
+              </div>
+            </td>
+            <td>
+              <div class="cell-content">
+                <div *ngIf="obrigatoriedade.dataInicio || obrigatoriedade.dataFim; else semVigencia">
+                  {{ formatarData(obrigatoriedade.dataInicio) }} até {{ formatarData(obrigatoriedade.dataFim) }}
+                </div>
+                <ng-template #semVigencia>-</ng-template>
+              </div>
+            </td>
+            <td>
+              <div class="cell-content">
+                {{ obrigatoriedade.ordem || '-' }}
+              </div>
+            </td>
+            <td>
+              <div class="cell-content">
+                {{ formatarData(obrigatoriedade.dataCriacao) }}
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button 
+                  class="btn btn-sm btn-primary" 
+                  (click)="editarObrigatoriedade(obrigatoriedade); $event.stopPropagation()"
+                  title="Editar">
+                  <i class="icon">✏️</i>
+                </button>
+                <button 
+                  class="btn btn-sm btn-danger" 
+                  (click)="excluirObrigatoriedade(obrigatoriedade); $event.stopPropagation()"
+                  title="Excluir">
+                  <i class="icon">🗑️</i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Mensagem quando não há dados -->
+      <div class="no-data" *ngIf="obrigatoriedadesFiltradas.length === 0 && !carregando">
+        <div class="no-data-icon">📋</div>
+        <h3>Nenhuma obrigatoriedade encontrada</h3>
+        <p *ngIf="termoBusca || filtroAtivo || filtroVigencia">
+          Tente ajustar os filtros ou limpar a busca.
+        </p>
+        <p *ngIf="!termoBusca && !filtroAtivo && !filtroVigencia">
+          Clique em "Nova Obrigatoriedade" para começar.
+        </p>
+        <button class="btn btn-primary" (click)="novaObrigatoriedadeFormulario()" *ngIf="!termoBusca && !filtroAtivo && !filtroVigencia">
+          <i class="icon">+</i>
+          Criar Primeira Obrigatoriedade
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalhes da Obrigatoriedade Selecionada -->
+  <div class="details-section" *ngIf="obrigatoriedadeSelecionada && !exibirFormulario">
+    <div class="details-header">
+      <h3>Detalhes da Obrigatoriedade</h3>
+      <button class="btn btn-secondary" (click)="obrigatoriedadeSelecionada = null">
+        <i class="icon">✖️</i>
+        Fechar
+      </button>
+    </div>
+    
+    <div class="details-content">
+      <div class="detail-item">
+        <label>Nome:</label>
+        <span>{{ obrigatoriedadeSelecionada.nome }}</span>
+      </div>
+      
+      <div class="detail-item" *ngIf="obrigatoriedadeSelecionada.descricao">
+        <label>Descrição:</label>
+        <span>{{ obrigatoriedadeSelecionada.descricao }}</span>
+      </div>
+      
+      <div class="detail-item">
+        <label>Status:</label>
+        <span class="badge" [class.active]="obrigatoriedadeSelecionada.ativo" [class.inactive]="!obrigatoriedadeSelecionada.ativo">
+          {{ obrigatoriedadeSelecionada.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      </div>
+      
+      <div class="detail-item" *ngIf="obrigatoriedadeSelecionada.ordem">
+        <label>Ordem:</label>
+        <span>{{ obrigatoriedadeSelecionada.ordem }}</span>
+      </div>
+      
+      <div class="detail-item" *ngIf="obrigatoriedadeSelecionada.dataInicio">
+        <label>Data de Início:</label>
+        <span>{{ formatarData(obrigatoriedadeSelecionada.dataInicio) }}</span>
+      </div>
+      
+      <div class="detail-item" *ngIf="obrigatoriedadeSelecionada.dataFim">
+        <label>Data de Fim:</label>
+        <span>{{ formatarData(obrigatoriedadeSelecionada.dataFim) }}</span>
+      </div>
+      
+      <div class="detail-item">
+        <label>Data de Criação:</label>
+        <span>{{ formatarData(obrigatoriedadeSelecionada.dataCriacao) }}</span>
+      </div>
+      
+      <div class="detail-item" *ngIf="obrigatoriedadeSelecionada.dataAtualizacao !== obrigatoriedadeSelecionada.dataCriacao">
+        <label>Última Atualização:</label>
+        <span>{{ formatarData(obrigatoriedadeSelecionada.dataAtualizacao) }}</span>
+      </div>
+    </div>
+  </div>
+</div>
