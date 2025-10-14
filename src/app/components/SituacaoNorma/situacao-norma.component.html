@@ -23,21 +23,22 @@
     <p>Carregando...</p>
   </div>
 
-  <!-- Formulário -->
-  <div class="form-container" *ngIf="mostrarFormulario">
-    <div class="form-header">
-      <h2>{{ editando ? 'Editar' : 'Nova' }} Situação de Norma</h2>
-    </div>
-    
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="mostrarFormulario"
+    [title]="editando ? 'Editar Situação de Norma' : 'Nova Situação de Norma'"
+    width="600px"
+    (closed)="onDialogClosed()">
+
     <form (ngSubmit)="salvarSituacao()" #formularioRef="ngForm">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label" for="codigo">Código *</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="codigo"
             name="codigo"
-            class="form-input" 
+            class="form-input"
             [(ngModel)]="formulario.codigo"
             required
             maxlength="50"
@@ -46,39 +47,39 @@
 
         <div class="form-group">
           <label class="form-label" for="descricao">Descrição *</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="descricao"
             name="descricao"
-            class="form-input" 
+            class="form-input"
             [(ngModel)]="formulario.descricao"
             required
             maxlength="200"
             placeholder="Descrição da situação">
         </div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">
-            <input 
-              type="checkbox" 
-              [(ngModel)]="formulario.ativo"
-              name="ativo"
-              class="form-checkbox"> 
-            Situação ativa
-          </label>
-        </div>
+      <div class="form-group">
+        <label class="form-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="formulario.ativo"
+            name="ativo"
+            class="form-checkbox">
+          Situação ativa
+        </label>
       </div>
 
       <div class="form-actions">
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="btn btn-primary"
           [disabled]="carregando || !formularioRef.form.valid">
           <i class="icon">💾</i>
-          {{ editando ? 'Atualizar' : 'Salvar' }}
+          {{carregando ? 'Salvando...' : (editando ? 'Atualizar' : 'Salvar')}}
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           class="btn btn-secondary"
           (click)="cancelarFormulario()">
           <i class="icon">✗</i>
@@ -86,7 +87,7 @@
         </button>
       </div>
     </form>
-  </div>
+  </app-dialog>
 
   <!-- Tabela de situações -->
   <div class="table-container" *ngIf="!carregando">

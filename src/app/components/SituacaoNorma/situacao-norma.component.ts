@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SituacaoNorma, SituacaoNormaDTO } from './situacao-norma.model';
 import { SituacaoNormaService } from './situacao-norma.service';
+import { ToastService } from '../../services/toast.service';
+import { DialogComponent } from '../dialog/dialog.component';
 
 @Component({
   selector: 'app-situacao-norma',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DialogComponent],
   templateUrl: './situacao-norma.component.html',
   styleUrls: ['./situacao-norma.component.css']
 })
@@ -17,8 +19,10 @@ export class SituacaoNormaComponent implements OnInit {
   mostrarFormulario = false;
   editando = false;
   carregando = false;
-  mensagemSucesso = '';
-  mensagemErro = '';
+
+  // Mensagens de feedback
+  mensagemSucesso: string = '';
+  mensagemErro: string = '';
 
   // Formulário
   formulario: SituacaoNormaDTO = {
@@ -27,7 +31,10 @@ export class SituacaoNormaComponent implements OnInit {
     ativo: true
   };
 
-  constructor(private situacaoNormaService: SituacaoNormaService) {}
+  constructor(
+    private situacaoNormaService: SituacaoNormaService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.carregarSituacoes();
@@ -42,7 +49,7 @@ export class SituacaoNormaComponent implements OnInit {
         this.carregando = false;
       },
       error: (erro) => {
-        this.mostrarErro('Erro ao carregar situações de norma');
+        this.toastService.loadError('situações de norma');
         this.carregando = false;
         console.error('Erro:', erro);
       }
@@ -86,12 +93,13 @@ export class SituacaoNormaComponent implements OnInit {
       // Atualizar
       this.situacaoNormaService.atualizar(this.formulario.id, this.formulario).subscribe({
         next: (situacao) => {
-          this.mostrarSucesso('Situação de norma atualizada com sucesso!');
+          this.toastService.saveSuccess('Situação de norma');
           this.carregarSituacoes();
           this.cancelarFormulario();
         },
         error: (erro) => {
-          this.mostrarErro('Erro ao atualizar situação de norma');
+          const errorMessage = erro.error?.erro || erro.message || 'Erro desconhecido';
+          this.toastService.saveError('situação de norma', errorMessage);
           this.carregando = false;
           console.error('Erro:', erro);
         }
@@ -100,12 +108,13 @@ export class SituacaoNormaComponent implements OnInit {
       // Criar
       this.situacaoNormaService.criar(this.formulario).subscribe({
         next: (situacao) => {
-          this.mostrarSucesso('Situação de norma criada com sucesso!');
+          this.toastService.success('Situação criada', 'Situação de norma foi criada com sucesso!');
           this.carregarSituacoes();
           this.cancelarFormulario();
         },
         error: (erro) => {
-          this.mostrarErro('Erro ao criar situação de norma');
+          const errorMessage = erro.error?.erro || erro.message || 'Erro desconhecido';
+          this.toastService.saveError('situação de norma', errorMessage);
           this.carregando = false;
           console.error('Erro:', erro);
         }
@@ -115,20 +124,21 @@ export class SituacaoNormaComponent implements OnInit {
 
   // Excluir situação
   excluirSituacao(situacao: SituacaoNorma): void {
-    if (confirm(`Tem certeza que deseja excluir a situação "${situacao.descricao}"?`)) {
+    this.toastService.confirmDelete(situacao.descricao, () => {
       this.carregando = true;
       this.situacaoNormaService.excluir(situacao.id!).subscribe({
         next: () => {
-          this.mostrarSucesso('Situação de norma excluída com sucesso!');
+          this.toastService.deleteSuccess('Situação de norma');
           this.carregarSituacoes();
         },
         error: (erro) => {
-          this.mostrarErro('Erro ao excluir situação de norma');
+          const errorMessage = erro.error?.erro || erro.message || 'Erro desconhecido';
+          this.toastService.deleteError('situação de norma', errorMessage);
           this.carregando = false;
           console.error('Erro:', erro);
         }
       });
-    }
+    });
   }
 
   // Cancelar formulário
@@ -143,10 +153,15 @@ export class SituacaoNormaComponent implements OnInit {
     };
   }
 
+  // Método chamado quando o dialog é fechado
+  onDialogClosed(): void {
+    this.cancelarFormulario();
+  }
+
   // Validar formulário
   private validarFormulario(): boolean {
     if (!this.formulario.codigo || !this.formulario.descricao) {
-      this.mostrarErro('Código e descrição são obrigatórios');
+      this.toastService.warning('Campos obrigatórios', 'Código e descrição são obrigatórios');
       return false;
     }
     return true;
@@ -173,11 +188,13 @@ export class SituacaoNormaComponent implements OnInit {
   // Alternar status ativo/inativo
   alternarStatus(situacao: SituacaoNorma): void {
     const novoStatus = !situacao.ativo;
-    const mensagem = novoStatus
-      ? `Tem certeza que deseja ativar a situação "${situacao.descricao}"?`
-      : `Tem certeza que deseja desativar a situação "${situacao.descricao}"?`;
-      
-    if (confirm(mensagem)) {
+    const action = novoStatus ? 'ativar' : 'desativar';
+
+    const confirmMethod = novoStatus
+      ? this.toastService.confirmActivate
+      : this.toastService.confirmDeactivate;
+
+    confirmMethod.call(this.toastService, situacao.descricao, () => {
       const dto: SituacaoNormaDTO = {
         id: situacao.id,
         codigo: situacao.codigo,
@@ -188,14 +205,15 @@ export class SituacaoNormaComponent implements OnInit {
       this.situacaoNormaService.atualizar(situacao.id!, dto).subscribe({
         next: () => {
           situacao.ativo = novoStatus;
-          this.mostrarSucesso(`Situação ${novoStatus ? 'ativada' : 'desativada'} com sucesso!`);
+          this.toastService.operationSuccess(`${novoStatus ? 'Ativação' : 'Desativação'} da situação`);
         },
         error: (erro) => {
-          this.mostrarErro('Erro ao alterar status da situação');
+          const errorMessage = erro.error?.erro || erro.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao alterar status', errorMessage);
           console.error('Erro:', erro);
         }
       });
-    }
+    });
   }
 
   // Track by function para performance da tabela
@@ -270,9 +288,9 @@ export class SituacaoNormaComponent implements OnInit {
   }
 
   excluir(situacao: SituacaoNorma): void {
-    if (confirm(`Tem certeza que deseja excluir a situação "${situacao.codigo}"?`)) {
+    this.toastService.confirmDelete(situacao.codigo, () => {
       this.excluirSituacao(situacao);
-    }
+    });
   }
 
   // Formatação de data

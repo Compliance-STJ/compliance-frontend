@@ -1,0 +1,63 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts$ | async"
+    [class]="getToastClass(toast.type)"
+    role="alert"
+    [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'"
+    [attr.aria-atomic]="true">
+
+    <div class="toast-content" [class.confirmation-layout]="toast.type === 'confirm'">
+      <div class="toast-icon">
+        {{ getIcon(toast.type) }}
+      </div>
+
+      <div class="toast-body">
+        <div class="toast-title">{{ toast.title }}</div>
+        <div *ngIf="toast.message" class="toast-message">{{ toast.message }}</div>
+
+        <!-- Confirmation actions inside body for better layout -->
+        <div *ngIf="toast.type === 'confirm' && toast.confirmActions" class="confirmation-actions">
+          <button
+            class="toast-cancel-btn"
+            (click)="onCancel(toast)"
+            [attr.aria-label]="toast.confirmActions.cancel.label">
+            {{ toast.confirmActions.cancel.label }}
+          </button>
+          <button
+            class="toast-confirm-btn"
+            (click)="onConfirm(toast)"
+            [attr.aria-label]="toast.confirmActions.confirm.label">
+            {{ toast.confirmActions.confirm.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="toast-actions" *ngIf="toast.type !== 'confirm'">
+        <!-- Regular action button -->
+        <button
+          *ngIf="toast.action"
+          class="toast-action-btn"
+          (click)="onAction(toast)"
+          [attr.aria-label]="toast.action.label">
+          {{ toast.action.label }}
+        </button>
+
+        <!-- Close button (only for dismissible toasts that are not confirmations) -->
+        <button
+          *ngIf="toast.dismissible"
+          class="toast-close-btn"
+          (click)="onClose(toast)"
+          aria-label="Fechar notificação">
+          ✗
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress bar for auto-dismiss -->
+    <div
+      *ngIf="toast.duration && toast.duration > 0"
+      class="toast-progress"
+      [style.animation-duration.ms]="toast.duration">
+    </div>
+  </div>
+</div>

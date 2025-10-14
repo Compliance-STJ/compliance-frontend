@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ObrigatoriedadeService } from './obrigatoriedade.service';
 import { Obrigatoriedade, ObrigatoriedadeEstatisticas } from './obrigatoriedade.model';
+import { ToastService } from '../../services/toast.service';
+import { DialogComponent } from '../dialog/dialog.component';
 
 @Component({
   selector: 'app-obrigatoriedade',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DialogComponent],
   templateUrl: './obrigatoriedade.component.html',
   styleUrls: ['./obrigatoriedade.component.css']
 })
@@ -20,16 +22,19 @@ export class ObrigatoriedadeComponent implements OnInit {
 
   // Estado da aplicação
   modoEdicao = false;
-  exibirFormulario = false;
+  mostrarFormulario = false;
+  obrigatoriedadeEditando: Obrigatoriedade | null = null;
   carregando = false;
-  erro: string | null = null;
 
   // Filtros e busca
   filtroAtivo = '';
   termoBusca = '';
   filtroVigencia = '';
 
-  constructor(private obrigatoriedadeService: ObrigatoriedadeService) {}
+  constructor(
+    private obrigatoriedadeService: ObrigatoriedadeService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.carregarObrigatoriedades();
@@ -41,7 +46,6 @@ export class ObrigatoriedadeComponent implements OnInit {
    */
   carregarObrigatoriedades(): void {
     this.carregando = true;
-    this.erro = null;
 
     this.obrigatoriedadeService.listarTodas().subscribe({
       next: (obrigatoriedades) => {
@@ -51,7 +55,7 @@ export class ObrigatoriedadeComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar obrigatoriedades:', erro);
-        this.erro = 'Erro ao carregar obrigatoriedades. Tente novamente.';
+        this.toastService.loadError('obrigatoriedades');
         this.carregando = false;
       }
     });
@@ -117,33 +121,37 @@ export class ObrigatoriedadeComponent implements OnInit {
   }
 
   /**
-   * Abre o formulário para nova obrigatoriedade
+   * Abre o dialog para nova obrigatoriedade
    */
   novaObrigatoriedadeFormulario(): void {
     this.novaObrigatoriedade = this.criarObrigatoriedadeVazia();
-    this.modoEdicao = false;
-    this.exibirFormulario = true;
-    this.erro = null;
+    this.obrigatoriedadeEditando = null;
+    this.mostrarFormulario = true;
   }
 
   /**
-   * Abre o formulário para editar obrigatoriedade
+   * Abre o dialog para editar obrigatoriedade
    */
   editarObrigatoriedade(obrigatoriedade: Obrigatoriedade): void {
     this.novaObrigatoriedade = { ...obrigatoriedade };
-    this.modoEdicao = true;
-    this.exibirFormulario = true;
-    this.erro = null;
+    this.obrigatoriedadeEditando = obrigatoriedade;
+    this.mostrarFormulario = true;
   }
 
   /**
-   * Cancela a edição/criação
+   * Cancela a edição/criação e fecha o dialog
    */
   cancelarEdicao(): void {
-    this.exibirFormulario = false;
-    this.modoEdicao = false;
+    this.mostrarFormulario = false;
+    this.obrigatoriedadeEditando = null;
     this.novaObrigatoriedade = this.criarObrigatoriedadeVazia();
-    this.erro = null;
+  }
+
+  /**
+   * Método chamado quando o dialog é fechado
+   */
+  onDialogClosed(): void {
+    this.cancelarEdicao();
   }
 
   /**
@@ -155,14 +163,14 @@ export class ObrigatoriedadeComponent implements OnInit {
     }
 
     this.carregando = true;
-    this.erro = null;
 
-    const operacao = this.modoEdicao 
+    const operacao = this.obrigatoriedadeEditando
       ? this.obrigatoriedadeService.atualizar(this.novaObrigatoriedade.id!, this.novaObrigatoriedade)
       : this.obrigatoriedadeService.criar(this.novaObrigatoriedade);
 
     operacao.subscribe({
       next: () => {
+        this.toastService.saveSuccess('Obrigatoriedade');
         this.carregarObrigatoriedades();
         this.carregarEstatisticas();
         this.cancelarEdicao();
@@ -170,7 +178,7 @@ export class ObrigatoriedadeComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao salvar obrigatoriedade:', erro);
-        this.erro = 'Erro ao salvar obrigatoriedade. Verifique os dados e tente novamente.';
+        this.toastService.saveError('obrigatoriedade', 'Verifique os dados e tente novamente');
         this.carregando = false;
       }
     });
@@ -180,24 +188,22 @@ export class ObrigatoriedadeComponent implements OnInit {
    * Exclui uma obrigatoriedade
    */
   excluirObrigatoriedade(obrigatoriedade: Obrigatoriedade): void {
-    if (!confirm(`Tem certeza que deseja excluir a obrigatoriedade "${obrigatoriedade.nome}"?`)) {
-      return;
-    }
-
-    this.carregando = true;
-    this.erro = null;
-
-    this.obrigatoriedadeService.excluir(obrigatoriedade.id!).subscribe({
-      next: () => {
-        this.carregarObrigatoriedades();
-        this.carregarEstatisticas();
-        this.carregando = false;
-      },
-      error: (erro) => {
-        console.error('Erro ao excluir obrigatoriedade:', erro);
-        this.erro = 'Erro ao excluir obrigatoriedade. Ela pode estar sendo usada em outros registros.';
-        this.carregando = false;
-      }
+    this.toastService.confirmDelete(obrigatoriedade.nome, () => {
+      this.carregando = true;
+  
+      this.obrigatoriedadeService.excluir(obrigatoriedade.id!).subscribe({
+        next: () => {
+          this.toastService.deleteSuccess('Obrigatoriedade');
+          this.carregarObrigatoriedades();
+          this.carregarEstatisticas();
+          this.carregando = false;
+        },
+        error: (erro) => {
+          console.error('Erro ao excluir obrigatoriedade:', erro);
+          this.toastService.deleteError('obrigatoriedade', 'Ela pode estar sendo usada em outros registros');
+          this.carregando = false;
+        }
+      });
     });
   }
 
@@ -206,31 +212,34 @@ export class ObrigatoriedadeComponent implements OnInit {
    */
   alternarStatus(obrigatoriedade: Obrigatoriedade): void {
     if (!obrigatoriedade.id) return;
-    
-    const mensagem = obrigatoriedade.ativo
-      ? 'Tem certeza que deseja desativar esta obrigatoriedade?'
-      : 'Tem certeza que deseja ativar esta obrigatoriedade?';
-      
-    if (confirm(mensagem)) {
-      this.carregando = true;
-      this.erro = null;
 
-      const operacao = obrigatoriedade.ativo 
+    const executarAlteracao = () => {
+      this.carregando = true;
+
+      const operacao = obrigatoriedade.ativo
         ? this.obrigatoriedadeService.desativar(obrigatoriedade.id!)
         : this.obrigatoriedadeService.ativar(obrigatoriedade.id!);
 
       operacao.subscribe({
         next: () => {
+          this.toastService.operationSuccess(`${obrigatoriedade.ativo ? 'Desativação' : 'Ativação'} da obrigatoriedade`);
           this.carregarObrigatoriedades();
           this.carregarEstatisticas();
           this.carregando = false;
         },
         error: (erro) => {
           console.error('Erro ao alterar status:', erro);
-          this.erro = 'Erro ao alterar status da obrigatoriedade.';
+          const errorMessage = erro.error?.erro || erro.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao alterar status', errorMessage);
           this.carregando = false;
         }
       });
+    };
+
+    if (obrigatoriedade.ativo) {
+      this.toastService.confirmDeactivate(obrigatoriedade.nome, executarAlteracao);
+    } else {
+      this.toastService.confirmActivate(obrigatoriedade.nome, executarAlteracao);
     }
   }
 
@@ -246,23 +255,23 @@ export class ObrigatoriedadeComponent implements OnInit {
    */
   private validarObrigatoriedade(): boolean {
     if (!this.novaObrigatoriedade.nome?.trim()) {
-      this.erro = 'Nome da obrigatoriedade é obrigatório.';
+      this.toastService.warning('Campo obrigatório', 'Nome da obrigatoriedade é obrigatório');
       return false;
     }
 
     if (this.novaObrigatoriedade.nome.length > 100) {
-      this.erro = 'Nome deve ter no máximo 100 caracteres.';
+      this.toastService.warning('Limite excedido', 'Nome deve ter no máximo 100 caracteres');
       return false;
     }
 
     if (this.novaObrigatoriedade.descricao && this.novaObrigatoriedade.descricao.length > 1000) {
-      this.erro = 'Descrição deve ter no máximo 1000 caracteres.';
+      this.toastService.warning('Limite excedido', 'Descrição deve ter no máximo 1000 caracteres');
       return false;
     }
 
     if (this.novaObrigatoriedade.dataInicio && this.novaObrigatoriedade.dataFim) {
       if (this.novaObrigatoriedade.dataInicio > this.novaObrigatoriedade.dataFim) {
-        this.erro = 'Data de início não pode ser posterior à data de fim.';
+        this.toastService.warning('Datas inválidas', 'Data de início não pode ser posterior à data de fim');
         return false;
       }
     }

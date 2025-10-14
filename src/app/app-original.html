@@ -1,0 +1,409 @@
+<style>
+  :host {
+    --primary-color: #2e5d96;
+    --secondary-color: #1a365d;
+    --accent-color: #3182ce;
+    --success-color: #38a169;
+    --warning-color: #dd6b20;
+    --danger-color: #e53e3e;
+    --gray-900: #1a202c;
+    --gray-800: #2d3748;
+    --gray-700: #4a5568;
+    --gray-600: #718096;
+    --gray-500: #a0aec0;
+    --gray-400: #cbd5e0;
+    --gray-300: #e2e8f0;
+    --gray-200: #edf2f7;
+    --gray-100: #f7fafc;
+    --white: #ffffff;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      var(--primary-color) 0%,
+      var(--secondary-color) 100%
+    );
+
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol";
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--gray-800);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .navbar {
+    background-color: var(--white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .navbar-brand h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+  }
+
+  .logo {
+    height: 40px;
+    width: auto;
+  }
+
+  .navbar-menu {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .nav-item {
+    font-weight: 500;
+    color: var(--gray-700);
+    text-decoration: none;
+    padding: 0.5rem 0;
+    transition: color 0.2s ease;
+  }
+
+  .nav-item:hover {
+    color: var(--primary-color);
+  }
+
+  .nav-item.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--gray-100);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .user-profile:hover {
+    background-color: var(--gray-200);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .hero h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    opacity: 0.9;
+  }
+
+  .hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .btn-primary {
+    background-color: white;
+    color: var(--primary-color);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--gray-100);
+  }
+
+  .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .features {
+    padding: 4rem 2rem;
+    background-color: var(--white);
+  }
+
+  .features-title {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .features-title h3 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 1rem;
+  }
+
+  .features-title p {
+    font-size: 1.125rem;
+    color: var(--gray-700);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .feature-card {
+    background-color: var(--gray-100);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-icon {
+    background-color: var(--primary-color);
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .feature-card h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--gray-900);
+  }
+
+  .feature-card p {
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+
+  footer {
+    background-color: var(--gray-900);
+    color: var(--gray-400);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  footer p {
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-menu {
+      display: none;
+    }
+    
+    .hero h2 {
+      font-size: 2rem;
+    }
+    
+    .hero p {
+      font-size: 1rem;
+    }
+    
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="app-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-color)">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <h1>STJ Compliance</h1>
+    </div>
+    
+    <div class="navbar-menu">
+      <a routerLink="/inicio" class="nav-item" routerLinkActive="active">Início</a>
+      <a routerLink="/normas" class="nav-item" routerLinkActive="active">Normas</a>
+      <a routerLink="/situacoes-norma" class="nav-item" routerLinkActive="active">Situações de Norma</a>
+      <a routerLink="/situacoes-obrigacao" class="nav-item" routerLinkActive="active">Situações de Obrigação</a>
+      <a routerLink="/origens" class="nav-item" routerLinkActive="active">Origens</a>
+      <a routerLink="/obrigatoriedades" class="nav-item" routerLinkActive="active">Obrigatoriedades</a>
+      <a routerLink="/unidades" class="nav-item" routerLinkActive="active">Unidades</a>
+    </div>
+    
+    <!-- User Header Component -->
+    <app-user-header></app-user-header>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h2>Sistema de Gestão de Compliance</h2>
+      <p>Gerencie políticas, monitore riscos e assegure a conformidade regulatória de forma eficiente e transparente.</p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary">Painel de Controle</button>
+        <button class="btn btn-secondary">Saiba Mais</button>
+      </div>
+    </section>
+
+    <!-- Toast Demo Section -->
+    <section class="features">
+      <app-toast-demo></app-toast-demo>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" style="display: none;">
+      <div class="features-title">
+        <h3>Recursos Principais</h3>
+        <p>Nossa plataforma oferece todas as ferramentas necessárias para gerenciar seu programa de compliance com eficiência.</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h4>Gestão de Políticas</h4>
+          <p>Crie, revise e distribua políticas corporativas com fluxos de aprovação personalizados e controle de versões.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h4>Avaliação de Riscos</h4>
+          <p>Identifique, avalie e monitore riscos de compliance em toda a organização com mapas de calor e indicadores personalizáveis.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <h4>Monitoramento Contínuo</h4>
+          <p>Acompanhe a conformidade em tempo real com painéis interativos e alertas automáticos para desvios ou não conformidades.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </div>
+          <h4>Canal de Denúncias</h4>
+          <p>Receba e gerencie denúncias de forma confidencial, garantindo a proteção dos denunciantes e a investigação adequada.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <h4>Análise de Dados</h4>
+          <p>Utilize análises avançadas para identificar padrões, tendências e áreas potenciais de risco em suas operações.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <h4>Treinamentos</h4>
+          <p>Gerencie e acompanhe o progresso de treinamentos de compliance para todos os colaboradores da organização.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Sistema de Gestão de Compliance STJ. Todos os direitos reservados.</p>
+  </footer>
+</div>
+
+<!-- Componente de verificação do status do backend -->
+<app-backend-status></app-backend-status>
+
+<!-- Sistema de Toast para feedback -->
+<app-toast-container></app-toast-container>
+
+<router-outlet></router-outlet>

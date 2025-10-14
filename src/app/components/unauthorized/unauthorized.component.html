@@ -1,0 +1,40 @@
+<div class="unauthorized-container">
+  <div class="unauthorized-card">
+    <div class="icon-section">
+      <div class="lock-icon">🔒</div>
+    </div>
+    
+    <div class="content-section">
+      <h1>Acesso Negado</h1>
+      <p class="message">
+        Você não tem permissão para acessar esta página ou funcionalidade.
+      </p>
+      
+      <div class="user-info" *ngIf="currentUser">
+        <p><strong>Usuário:</strong> {{ currentUser.user.name }}</p>
+        <p><strong>Perfil:</strong> {{ currentUser.user.role | uppercase }}</p>
+        <p><strong>Email:</strong> {{ currentUser.user.email }}</p>
+      </div>
+      
+      <div class="suggestions">
+        <h3>O que você pode fazer:</h3>
+        <ul>
+          <li>Verificar se você está logado com o usuário correto</li>
+          <li>Solicitar as permissões necessárias ao administrador</li>
+          <li>Voltar à página inicial e navegar pelas funcionalidades disponíveis</li>
+        </ul>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-primary" (click)="goBack()">
+          <i class="icon">🏠</i>
+          Voltar ao Início
+        </button>
+        <button class="btn btn-secondary" (click)="logout()">
+          <i class="icon">🚪</i>
+          Fazer Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

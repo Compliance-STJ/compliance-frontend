@@ -1,3 +1,6 @@
+/* Import Corporate Theme */
+@import './styles/corporate-theme.css';
+
 /* Global Styles */
 * {
   margin: 0;
@@ -8,11 +11,85 @@
 html, body { 
   height: 100%; 
   margin: 0; 
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-family);
 }
 
 body {
-  background: #f5f5f5;
+  background: var(--bg-primary);
   min-height: 100vh;
-  color: #333;
+  color: var(--text-primary);
+}
+
+/* Global Dialog Styles - Ensures all dialogs have white background */
+.mat-dialog-container,
+.mat-mdc-dialog-container,
+.cdk-overlay-pane .mat-dialog-container,
+.dialog-container {
+  background: white !important;
+}
+
+.mat-dialog-container .mat-dialog-content,
+.mat-mdc-dialog-container .mat-mdc-dialog-content {
+  background: white !important;
+}
+
+.dialog-header,
+.mat-dialog-container .mat-dialog-title,
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  background: var(--primary) !important;
+  color: white !important;
+}
+
+/* Custom dialog styles */
+.mat-dialog-container {
+  border-radius: 12px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.mat-dialog-title,
+.mat-mdc-dialog-title {
+  background: var(--primary) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Ensure form elements in dialogs have proper styling */
+.mat-dialog-container .mat-form-field,
+.mat-mdc-dialog-container .mat-mdc-form-field,
+.dialog-container .mat-form-field,
+.dialog-container .mat-mdc-form-field {
+  background: white !important;
+}
+
+.mat-dialog-container .mat-form-field .mat-form-field-wrapper,
+.mat-mdc-dialog-container .mat-mdc-form-field .mat-mdc-form-field-wrapper {
+  background: white !important;
+}
+
+/* Utility classes for consistent white backgrounds */
+.bg-white {
+  background: white !important;
+}
+
+.dialog-bg-white,
+.modal-bg-white,
+.form-bg-white {
+  background: white !important;
+}
+
+/* Override any potential color bleeding from parent elements */
+.mat-dialog-container *,
+.mat-mdc-dialog-container *,
+.dialog-container * {
+  --mdc-dialog-container-color: white;
+  --mat-dialog-container-background-color: white;
+}
+
+/* Ensure no blue/gray backgrounds in any dialog components */
+.mat-dialog-container .mat-card,
+.mat-dialog-container .mat-expansion-panel,
+.mat-dialog-container .mat-form-field-appearance-outline,
+.dialog-container .mat-card,
+.dialog-container .mat-expansion-panel {
+  background-color: white !important;
 }

@@ -33,101 +33,95 @@
     </div>
   </div> -->
 
-  <!-- Formulário -->
-  <div *ngIf="mostrarFormulario" class="card form-card">
-    <div class="card-header">
-      <h3 class="card-title">
-        {{origemEditando ? 'Editar Origem' : 'Nova Origem'}}
-      </h3>
-      <button type="button" class="btn btn-secondary" (click)="cancelar()">
-        <i class="icon">✗</i>
-        Cancelar
-      </button>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="salvar()" #origemForm="ngForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="nome">Nome *</label>
-            <input
-              type="text"
-              id="nome"
-              name="nome"
-              class="form-input"
-              [(ngModel)]="origemSelecionada.nome"
-              required
-              maxlength="100"
-              placeholder="Digite o nome da origem">
-          </div>
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="mostrarFormulario"
+    [title]="origemEditando ? 'Editar Origem' : 'Nova Origem'"
+    width="600px"
+    (closed)="onDialogClosed()">
 
-          <div class="form-group">
-            <label class="form-label" for="ativo">Status</label>
-            <select
-              id="ativo"
-              name="ativo"
-              class="form-select"
-              [(ngModel)]="origemSelecionada.ativo"
-              required>
-              <option [value]="true">Ativa</option>
-              <option [value]="false">Inativa</option>
-            </select>
-          </div>
+    <form (ngSubmit)="salvar()" #origemForm="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="nome">Nome *</label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            class="form-input"
+            [(ngModel)]="origemSelecionada.nome"
+            required
+            maxlength="100"
+            placeholder="Digite o nome da origem">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="descricao">Descrição</label>
-          <textarea
-            id="descricao"
-            name="descricao"
-            class="form-textarea"
-            [(ngModel)]="origemSelecionada.descricao"
-            maxlength="500"
-            rows="3"
-            placeholder="Digite uma descrição para a origem">
-          </textarea>
+          <label class="form-label" for="ativo">Status</label>
+          <select
+            id="ativo"
+            name="ativo"
+            class="form-select"
+            [(ngModel)]="origemSelecionada.ativo"
+            required>
+            <option [value]="true">Ativa</option>
+            <option [value]="false">Inativa</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea
+          id="descricao"
+          name="descricao"
+          class="form-textarea"
+          [(ngModel)]="origemSelecionada.descricao"
+          maxlength="500"
+          rows="3"
+          placeholder="Digite uma descrição para a origem">
+        </textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="dataInicio">Data de Início</label>
+          <input
+            type="datetime-local"
+            id="dataInicio"
+            name="dataInicio"
+            class="form-input"
+            [(ngModel)]="origemSelecionada.dataInicio">
         </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="dataInicio">Data de Início</label>
-            <input
-              type="datetime-local"
-              id="dataInicio"
-              name="dataInicio"
-              class="form-input"
-              [(ngModel)]="origemSelecionada.dataInicio">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="dataFim">Data de Fim</label>
-            <input
-              type="datetime-local"
-              id="dataFim"
-              name="dataFim"
-              class="form-input"
-              [(ngModel)]="origemSelecionada.dataFim">
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="dataFim">Data de Fim</label>
+          <input
+            type="datetime-local"
+            id="dataFim"
+            name="dataFim"
+            class="form-input"
+            [(ngModel)]="origemSelecionada.dataFim">
         </div>
+      </div>
 
-        <div class="form-actions">
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="!origemForm.form.valid || carregando">
-            <i class="icon">💾</i>
-            {{carregando ? 'Salvando...' : 'Salvar'}}
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="cancelar()">
-            <i class="icon">✗</i>
-            Cancelar
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!origemForm.form.valid || carregando">
+          <i class="icon">💾</i>
+          {{carregando ? 'Salvando...' : 'Salvar'}}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelar()">
+          <i class="icon">✗</i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </app-dialog>
 
   <!-- Lista de Origens -->
   <div class="card">

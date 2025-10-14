@@ -1,118 +1,332 @@
-<div class="card">
-  <div class="card-header">
-    <div class="header-content">
-      <div class="title-section">
-        <h2 class="card-title">
-          <span class="icon">📚</span>
-          Hierarquia de Normas, Obrigações e Responsáveis
-        </h2>
+<div class="main-content">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Normas de Compliance</h1>
+    <p class="page-subtitle">Gerenciamento de normas, leis e regulamentos aplicáveis ao STJ</p>
+  </div>
+
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="showNormaDialog"
+    [title]="normaEditando ? 'Editar Norma' : 'Nova Norma'"
+    width="900px"
+    (closed)="fecharDialog()">
+
+    <form (ngSubmit)="salvarNorma()" #normaFormRef="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="nome">Nome *</label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            class="form-input"
+            [(ngModel)]="normaForm.nome"
+            required
+            maxlength="200"
+            placeholder="Ex: Lei Geral de Proteção de Dados">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="numero">Número *</label>
+          <input
+            type="text"
+            id="numero"
+            name="numero"
+            class="form-input"
+            [(ngModel)]="normaForm.numero"
+            required
+            maxlength="50"
+            placeholder="Ex: Lei nº 13.709/2018">
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn btn-outline" (click)="adicionarNovaNorma()">
-          <span class="icon">+</span>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="situacaoId">Situação *</label>
+          <select
+            id="situacaoId"
+            name="situacaoId"
+            class="form-select"
+            [(ngModel)]="normaForm.situacaoId"
+            required>
+            <option [value]="null" disabled>Selecione uma situação</option>
+            <option *ngFor="let situacao of situacoes" [value]="situacao.id">
+              {{ situacao.descricao }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="origemId">Origem</label>
+          <select
+            id="origemId"
+            name="origemId"
+            class="form-select"
+            [(ngModel)]="normaForm.origemId">
+            <option [value]="null">Nenhuma</option>
+            <option *ngFor="let origem of origens" [value]="origem.id">
+              {{ origem.nome }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="dataNorma">Data da Norma *</label>
+          <input
+            type="date"
+            id="dataNorma"
+            name="dataNorma"
+            class="form-input"
+            [(ngModel)]="normaForm.dataNorma"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="dataPublicacao">Data de Publicação</label>
+          <input
+            type="date"
+            id="dataPublicacao"
+            name="dataPublicacao"
+            class="form-input"
+            [(ngModel)]="normaForm.dataPublicacao">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="dataVigencia">Data de Vigência</label>
+          <input
+            type="date"
+            id="dataVigencia"
+            name="dataVigencia"
+            class="form-input"
+            [(ngModel)]="normaForm.dataVigencia">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="categoria">Categoria</label>
+          <input
+            type="text"
+            id="categoria"
+            name="categoria"
+            class="form-input"
+            [(ngModel)]="normaForm.categoria"
+            maxlength="100"
+            placeholder="Ex: Proteção de Dados, Segurança da Informação">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="orgaoEmissor">Órgão Emissor</label>
+          <input
+            type="text"
+            id="orgaoEmissor"
+            name="orgaoEmissor"
+            class="form-input"
+            [(ngModel)]="normaForm.orgaoEmissor"
+            maxlength="200"
+            placeholder="Ex: Congresso Nacional">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea
+          id="descricao"
+          name="descricao"
+          class="form-textarea"
+          [(ngModel)]="normaForm.descricao"
+          rows="3"
+          placeholder="Descreva brevemente o conteúdo da norma...">
+        </textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="link">Link/URL</label>
+        <input
+          type="url"
+          id="link"
+          name="link"
+          class="form-input"
+          [(ngModel)]="normaForm.link"
+          maxlength="500"
+          placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="observacoes">Observações</label>
+        <textarea
+          id="observacoes"
+          name="observacoes"
+          class="form-textarea"
+          [(ngModel)]="normaForm.observacoes"
+          rows="2"
+          placeholder="Observações adicionais...">
+        </textarea>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!normaFormRef.form.valid || loading">
+          <i class="icon">💾</i>
+          {{loading ? 'Salvando...' : 'Salvar'}}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="fecharDialog()">
+          <i class="icon">✗</i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </app-dialog>
+
+  <!-- Lista de Normas -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Normas Cadastradas ({{ totalElements }})</h3>
+    </div>
+
+    <!-- Ações e Filtros -->
+    <div class="actions-panel">
+      <div class="actions-left">
+        <button
+          class="btn btn-primary"
+          (click)="adicionarNovaNorma()">
+          <i class="icon">+</i>
           Nova Norma
+        </button>
+
+        <div class="filter-buttons">
+          <button
+            class="btn filter-btn"
+            [class.active]="filtroSituacao === null"
+            (click)="filtrarPorSituacao(null)">
+            Todas
+          </button>
+          <button
+            *ngFor="let situacao of situacoes"
+            class="btn filter-btn"
+            [class.active]="filtroSituacao === situacao.id"
+            (click)="filtrarPorSituacao(situacao.id!)">
+            {{ situacao.descricao }}
+          </button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          class="form-input"
+          placeholder="Buscar por nome..."
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="buscar()">
+        <button class="btn btn-primary" (click)="buscar()">
+          <i class="icon">🔍</i>
+          Buscar
         </button>
       </div>
     </div>
-  </div>
 
-  <div class="card-content">
-    <div class="normas-list">
-      <div *ngFor="let norma of normasData" class="norma-item">
-        <!-- Norma Header -->
-        <div class="norma-header" (click)="toggleNorma(norma.id)">
-          <div class="norma-info">
-            <span class="expand-icon">
-              {{ isNormaExpanded(norma.id) ? '▼' : '▶' }}
-            </span>
-            <span class="norma-icon">📚</span>
-            <div class="norma-details">
-              <h3 class="norma-name">{{ norma.nome }}</h3>
-              <p class="norma-meta">{{ norma.numero }} • {{ norma.categoria }}</p>
-            </div>
-          </div>
-          <div class="norma-status">
-            <span class="badge" [ngClass]="getSituacaoClass(norma.situacao)">
-              {{ norma.situacao }}
-            </span>
-            <span class="obrigacoes-count">{{ norma.obrigacoes.length }} obrigação(ões)</span>
-          </div>
-        </div>
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando normas...</p>
+    </div>
 
-        <!-- Obrigações (expandidas) -->
-        <div *ngIf="isNormaExpanded(norma.id)" class="obrigacoes-container">
-          <div *ngFor="let obrigacao of norma.obrigacoes" class="obrigacao-item">
-            <!-- Obrigação Header -->
-            <div class="obrigacao-header" (click)="toggleObrigacao(obrigacao.id)">
-              <div class="obrigacao-info">
-                <span class="expand-icon">
-                  {{ isObrigacaoExpanded(obrigacao.id) ? '▼' : '▶' }}
-                </span>
-                <span class="obrigacao-icon">📋</span>
-                <div class="obrigacao-details">
-                  <h4 class="obrigacao-title">{{ obrigacao.titulo }}</h4>
-                  <p class="obrigacao-meta">
-                    Prazo: {{ obrigacao.prazo }} • {{ obrigacao.evidencias.length }} evidência(s)
-                  </p>
-                </div>
+    <!-- Estado vazio -->
+    <div *ngIf="!loading && normasData.length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>Nenhuma norma encontrada</h3>
+      <p>Clique em "Nova Norma" para começar</p>
+      <button class="btn btn-primary" (click)="adicionarNovaNorma()">
+        <i class="icon">+</i>
+        Criar primeira norma
+      </button>
+    </div>
+
+    <!-- Tabela de normas -->
+    <div *ngIf="!loading && normasData.length > 0" class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Número</th>
+            <th>Situação</th>
+            <th>Categoria</th>
+            <th>Data da Norma</th>
+            <th>Origem</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let norma of normasData">
+            <td>
+              <strong>{{ norma.nome }}</strong>
+              <div class="descricao-mini" *ngIf="norma.descricao">{{ norma.descricao }}</div>
+            </td>
+            <td>{{ norma.numero }}</td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getSituacaoClass(getSituacaoDescricao(norma))">
+                {{ getSituacaoDescricao(norma) }}
+              </span>
+            </td>
+            <td>{{ norma.categoria || '-' }}</td>
+            <td>{{ formatarData(norma.dataNorma) }}</td>
+            <td>{{ norma.origemNome || '-' }}</td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="action-btn btn-view"
+                  (click)="visualizarNorma(norma)"
+                  title="Visualizar">
+                  <i class="icon">👁️</i>
+                </button>
+                <button
+                  class="action-btn btn-edit"
+                  (click)="editarNorma(norma)"
+                  title="Editar">
+                  <i class="icon">✏️</i>
+                </button>
+                <button
+                  class="action-btn btn-delete"
+                  (click)="excluirNorma(norma.id!)"
+                  title="Remover">
+                  <i class="icon">🗑️</i>
+                </button>
               </div>
-              <div class="obrigacao-status">
-                <div class="status-info">
-                  <span class="status-icon">{{ getSituacaoIcon(obrigacao.situacao) }}</span>
-                  <span class="badge badge-sm" [ngClass]="getSituacaoClass(obrigacao.situacao)">
-                    {{ obrigacao.situacao }}
-                  </span>
-                </div>
-                <span class="responsaveis-count">{{ obrigacao.responsaveis.length }} responsável(eis)</span>
-              </div>
-            </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-            <!-- Responsáveis (expandidos) -->
-            <div *ngIf="isObrigacaoExpanded(obrigacao.id)" class="responsaveis-container">
-              <div class="responsaveis-section">
-                <div class="responsaveis-header">
-                  <span class="responsaveis-icon">👥</span>
-                  <h5 class="responsaveis-title">Responsáveis</h5>
-                  <button class="btn btn-ghost btn-sm" (click)="adicionarResponsavel(obrigacao.id)">
-                    <span class="icon">+</span>
-                    Adicionar
-                  </button>
-                </div>
-                
-                <div class="responsaveis-list">
-                  <div *ngFor="let responsavel of obrigacao.responsaveis" class="responsavel-item">
-                    <div class="responsavel-info">
-                      <div class="avatar">
-                        {{ getInitials(responsavel.nome) }}
-                      </div>
-                      <div class="responsavel-details">
-                        <p class="responsavel-name">{{ responsavel.nome }}</p>
-                        <p class="responsavel-meta">{{ responsavel.cargo }} • {{ responsavel.departamento }}</p>
-                      </div>
-                    </div>
-                    <div class="responsavel-actions">
-                      <button class="btn btn-ghost btn-icon" (click)="editarResponsavel(responsavel.id)">
-                        ✏️
-                      </button>
-                      <button class="btn btn-ghost btn-icon" (click)="visualizarResponsavel(responsavel.id)">
-                        👁️
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Paginação -->
+    <div *ngIf="!loading && normasData.length > 0" class="pagination">
+      <button
+        class="btn btn-secondary"
+        [disabled]="currentPage === 0"
+        (click)="paginaAnterior()">
+        ← Anterior
+      </button>
 
-          <!-- Botão Nova Obrigação -->
-          <div class="nova-obrigacao">
-            <button class="btn btn-outline btn-sm" (click)="adicionarNovaObrigacao(norma.id)">
-              <span class="icon">+</span>
-              Nova Obrigação
-            </button>
-          </div>
-        </div>
-      </div>
+      <span class="pagination-info">
+        Página {{ currentPage + 1 }} de {{ totalPages }} ({{ totalElements }} normas)
+      </span>
+
+      <button
+        class="btn btn-secondary"
+        [disabled]="currentPage >= totalPages - 1"
+        (click)="proximaPagina()">
+        Próxima →
+      </button>
     </div>
   </div>
 </div>

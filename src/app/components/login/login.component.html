@@ -1,0 +1,63 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Sistema de Compliance</h1>
+      <h2>Superior Tribunal de Justiça</h2>
+      <p>Faça login para acessar o sistema</p>
+    </div>
+
+    <form (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="credentials.email"
+          required
+          class="form-input"
+          placeholder="seu.email@stj.jus.br"
+          [disabled]="loading">
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          [(ngModel)]="credentials.senha"
+          required
+          class="form-input"
+          placeholder="Digite sua senha"
+          [disabled]="loading">
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary btn-login"
+        [disabled]="loading || !loginForm.form.valid">
+        <span *ngIf="loading" class="spinner"></span>
+        <span *ngIf="!loading">Entrar</span>
+        <span *ngIf="loading">Entrando...</span>
+      </button>
+    </form>
+
+    <!-- Usuários de exemplo para desenvolvimento -->
+    <div class="mock-users" *ngIf="!loading">
+      <h3>Usuários para Teste</h3>
+      <p class="mock-info">Clique em um usuário para preencher automaticamente (senha: 123456)</p>
+      
+      <div class="user-list">
+        <div
+          *ngFor="let user of mockUsers"
+          class="user-card"
+          (click)="selectMockUser(user.email)">
+          <div class="user-role">{{ user.role }}</div>
+          <div class="user-email">{{ user.email }}</div>
+          <div class="user-description">{{ user.description }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

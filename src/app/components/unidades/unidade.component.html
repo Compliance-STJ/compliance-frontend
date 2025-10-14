@@ -5,20 +5,9 @@
     <p class="page-subtitle">Gerenciamento das unidades responsáveis por normas e obrigações de compliance</p>
   </div>
 
-  <!-- Mensagens -->
-  <div *ngIf="erro || sucesso">
-    <div *ngIf="erro" class="alert alert-error">
-      <i class="icon">✗</i>
-      {{erro}}
-    </div>
-    <div *ngIf="sucesso" class="alert alert-success">
-      <i class="icon">✓</i>
-      {{sucesso}}
-    </div>
-  </div>
 
   <!-- Estatísticas -->
-  <div class="metrics-grid">
+  <!-- <div class="metrics-grid">
     <div class="metric-card">
       <div class="metric-value">{{estatisticas.total}}</div>
       <div class="metric-label">Total de Unidades</div>
@@ -31,129 +20,123 @@
       <div class="metric-value">{{estatisticas.inativas}}</div>
       <div class="metric-label">Unidades Inativas</div>
     </div>
-  </div>
+  </div> -->
 
-  <!-- Formulário -->
-  <div *ngIf="mostrarFormulario" class="card form-card">
-    <div class="card-header">
-      <h3 class="card-title">
-        {{unidadeEditando ? 'Editar Unidade' : 'Nova Unidade'}}
-      </h3>
-      <button type="button" class="btn btn-secondary" (click)="cancelar()">
-        <i class="icon">✗</i>
-        Cancelar
-      </button>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="salvar()" #unidadeForm="ngForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="nome">Nome *</label>
-            <input
-              type="text"
-              id="nome"
-              name="nome"
-              class="form-input"
-              [(ngModel)]="unidadeSelecionada.nome"
-              required
-              maxlength="100"
-              placeholder="Digite o nome da unidade">
-          </div>
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="mostrarFormulario"
+    [title]="unidadeEditando ? 'Editar Unidade' : 'Nova Unidade'"
+    width="700px"
+    (closed)="onDialogClosed()">
 
-          <div class="form-group">
-            <label class="form-label" for="sigla">Sigla *</label>
-            <input
-              type="text"
-              id="sigla"
-              name="sigla"
-              class="form-input"
-              [(ngModel)]="unidadeSelecionada.sigla"
-              required
-              maxlength="20"
-              placeholder="Ex: STJ, TJ, CNJ">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="ativo">Status</label>
-            <select
-              id="ativo"
-              name="ativo"
-              class="form-select"
-              [(ngModel)]="unidadeSelecionada.ativo"
-              required>
-              <option [value]="true">Ativa</option>
-              <option [value]="false">Inativa</option>
-            </select>
-          </div>
-        </div>
-
+    <form (ngSubmit)="salvar()" #unidadeForm="ngForm">
+      <div class="form-grid">
         <div class="form-group">
-          <label class="form-label" for="descricao">Descrição</label>
-          <textarea
-            id="descricao"
-            name="descricao"
-            class="form-textarea"
-            [(ngModel)]="unidadeSelecionada.descricao"
-            maxlength="500"
-            rows="3"
-            placeholder="Digite uma descrição para a unidade">
-          </textarea>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="email">E-mail de Contato</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              class="form-input"
-              [(ngModel)]="unidadeSelecionada.email"
-              placeholder="E-mail para contato">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="telefone">Telefone</label>
-            <input
-              type="tel"
-              id="telefone"
-              name="telefone"
-              class="form-input"
-              [(ngModel)]="unidadeSelecionada.telefone"
-              placeholder="Telefone para contato">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="responsavel">Responsável</label>
+          <label class="form-label" for="nome">Nome *</label>
           <input
             type="text"
-            id="responsavel"
-            name="responsavel"
+            id="nome"
+            name="nome"
             class="form-input"
-            [(ngModel)]="unidadeSelecionada.responsavel"
-            placeholder="Nome do responsável pela unidade">
+            [(ngModel)]="unidadeSelecionada.nome"
+            required
+            maxlength="100"
+            placeholder="Digite o nome da unidade">
         </div>
 
-        <div class="form-actions">
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="!unidadeForm.form.valid || carregando">
-            <i class="icon">💾</i>
-            {{carregando ? 'Salvando...' : 'Salvar'}}
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="cancelar()">
-            <i class="icon">✗</i>
-            Cancelar
-          </button>
+        <div class="form-group">
+          <label class="form-label" for="sigla">Sigla *</label>
+          <input
+            type="text"
+            id="sigla"
+            name="sigla"
+            class="form-input"
+            [(ngModel)]="unidadeSelecionada.sigla"
+            required
+            maxlength="20"
+            placeholder="Ex: STJ, TJ, CNJ">
         </div>
-      </form>
-    </div>
-  </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ativo">Status</label>
+          <select
+            id="ativo"
+            name="ativo"
+            class="form-select"
+            [(ngModel)]="unidadeSelecionada.ativo"
+            required>
+            <option [value]="true">Ativa</option>
+            <option [value]="false">Inativa</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea
+          id="descricao"
+          name="descricao"
+          class="form-textarea"
+          [(ngModel)]="unidadeSelecionada.descricao"
+          maxlength="500"
+          rows="3"
+          placeholder="Digite uma descrição para a unidade">
+        </textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="email">E-mail de Contato</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            [(ngModel)]="unidadeSelecionada.email"
+            placeholder="E-mail para contato">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="telefone">Telefone</label>
+          <input
+            type="tel"
+            id="telefone"
+            name="telefone"
+            class="form-input"
+            [(ngModel)]="unidadeSelecionada.telefone"
+            placeholder="Telefone para contato">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="responsavel">Responsável</label>
+        <input
+          type="text"
+          id="responsavel"
+          name="responsavel"
+          class="form-input"
+          [(ngModel)]="unidadeSelecionada.responsavel"
+          placeholder="Nome do responsável pela unidade">
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!unidadeForm.form.valid || carregando">
+          <i class="icon">💾</i>
+          {{carregando ? 'Salvando...' : 'Salvar'}}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelar()">
+          <i class="icon">✗</i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </app-dialog>
 
   <!-- Lista de Unidades -->
   <div class="card">
@@ -164,7 +147,10 @@
     <!-- Ações e Filtros -->
     <div class="actions-panel">
       <div class="actions-left">
-        <button class="btn btn-primary" (click)="novaUnidadeFormulario()">
+        <button 
+          *appHasPermission="{ resource: Resources.UNIDADES, action: Actions.CREATE }"
+          class="btn btn-primary" 
+          (click)="novaUnidadeFormulario()">
           <i class="icon">+</i>
           Nova Unidade
         </button>
@@ -262,6 +248,7 @@
             <td>
               <div class="action-buttons">
                 <button
+                  *appHasPermission="{ resource: Resources.UNIDADES, action: Actions.UPDATE }"
                   class="action-btn btn-edit"
                   (click)="editarUnidade(unidade)"
                   title="Editar">
@@ -269,6 +256,7 @@
                 </button>
                 
                 <button
+                  *appHasPermission="{ resource: Resources.UNIDADES, action: Actions.DELETE }"
                   class="action-btn btn-delete"
                   (click)="remover(unidade)"
                   title="Remover">

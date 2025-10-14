@@ -1,0 +1,631 @@
+<div class="main-content">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Obrigações</h1>
+    <p class="page-subtitle">Cadastro e acompanhamento de obrigações de compliance vinculadas às normas</p>
+  </div>
+
+  <!-- Estatísticas -->
+  <div *ngIf="estatisticas" class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">{{estatisticas.total}}</div>
+      <div class="metric-label">Total de Obrigações</div>
+    </div>
+    <div class="metric-card status-pendente">
+      <div class="metric-value">{{estatisticas.pendentes}}</div>
+      <div class="metric-label">Pendentes</div>
+    </div>
+    <div class="metric-card status-andamento">
+      <div class="metric-value">{{estatisticas.emAndamento}}</div>
+      <div class="metric-label">Em Andamento</div>
+    </div>
+    <div class="metric-card status-conforme">
+      <div class="metric-value">{{estatisticas.conformes}}</div>
+      <div class="metric-label">Conformes</div>
+    </div>
+    <div class="metric-card status-nao-conforme">
+      <div class="metric-value">{{estatisticas.naoConformes}}</div>
+      <div class="metric-label">Não Conformes</div>
+    </div>
+    <div class="metric-card status-vencida">
+      <div class="metric-value">{{estatisticas.vencidas}}</div>
+      <div class="metric-label">Vencidas</div>
+    </div>
+  </div>
+
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="mostrarFormulario"
+    [title]="obrigacaoEditando ? 'Editar Obrigação' : 'Nova Obrigação'"
+    width="800px"
+    (closed)="onDialogClosed()">
+
+    <form (ngSubmit)="salvar()" #obrigacaoFormRef="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="titulo">Título *</label>
+          <input
+            type="text"
+            id="titulo"
+            name="titulo"
+            class="form-input"
+            [(ngModel)]="obrigacaoForm.titulo"
+            required
+            maxlength="500"
+            placeholder="Digite o título da obrigação">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="normaId">Norma Vinculada *</label>
+          <select
+            id="normaId"
+            name="normaId"
+            class="form-select"
+            [(ngModel)]="obrigacaoForm.normaId"
+            required>
+            <option value="">Selecione uma norma</option>
+            <option *ngFor="let norma of normas" [value]="norma.id">
+              {{norma.nome}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tipo">Tipo *</label>
+          <select
+            id="tipo"
+            name="tipo"
+            class="form-select"
+            [(ngModel)]="obrigacaoForm.tipo"
+            required>
+            <option value="">Selecione o tipo</option>
+            <option *ngFor="let tipo of tiposObrigacao" [value]="tipo.value">
+              {{tipo.label}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prioridade">Prioridade *</label>
+          <select
+            id="prioridade"
+            name="prioridade"
+            class="form-select"
+            [(ngModel)]="obrigacaoForm.prioridade"
+            required>
+            <option value="">Selecione a prioridade</option>
+            <option *ngFor="let prioridade of prioridades" [value]="prioridade.value">
+              {{prioridade.label}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="recorrencia">Recorrência *</label>
+          <select
+            id="recorrencia"
+            name="recorrencia"
+            class="form-select"
+            [(ngModel)]="obrigacaoForm.recorrencia"
+            required>
+            <option value="">Selecione a recorrência</option>
+            <option *ngFor="let recorrencia of recorrencias" [value]="recorrencia.value">
+              {{recorrencia.label}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prazoConformidade">Prazo de Conformidade *</label>
+          <input
+            type="date"
+            id="prazoConformidade"
+            name="prazoConformidade"
+            class="form-input"
+            [(ngModel)]="obrigacaoForm.prazoConformidade"
+            required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="descricao">Descrição *</label>
+        <textarea
+          id="descricao"
+          name="descricao"
+          class="form-textarea"
+          [(ngModel)]="obrigacaoForm.descricao"
+          required
+          rows="4"
+          placeholder="Digite a descrição da obrigação">
+        </textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Unidades Responsáveis *</label>
+        <div class="checkbox-group">
+          <div *ngFor="let unidade of unidades" class="checkbox-item">
+            <input
+              type="checkbox"
+              [id]="'unidade-' + unidade.id"
+              [checked]="unidade.id !== undefined && isUnidadeSelecionada(unidade.id)"
+              (change)="unidade.id !== undefined && toggleUnidade(unidade.id, $event)">
+            <label [for]="'unidade-' + unidade.id">{{unidade.nome}}</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="observacoes">Observações</label>
+        <textarea
+          id="observacoes"
+          name="observacoes"
+          class="form-textarea"
+          [(ngModel)]="obrigacaoForm.observacoes"
+          rows="3"
+          placeholder="Digite observações adicionais">
+        </textarea>
+      </div>
+
+      <!-- Mensagens de erro/sucesso -->
+      <div *ngIf="erro" class="alert alert-error">
+        {{erro}}
+      </div>
+      <div *ngIf="sucesso" class="alert alert-success">
+        {{sucesso}}
+      </div>
+
+      <!-- Botões -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onDialogClosed()" [disabled]="carregando">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="carregando || !obrigacaoFormRef.form.valid">
+          <span *ngIf="carregando">Salvando...</span>
+          <span *ngIf="!carregando">{{obrigacaoEditando ? 'Atualizar' : 'Criar'}} Obrigação</span>
+        </button>
+      </div>
+    </form>
+  </app-dialog>
+
+  <!-- Card principal -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Lista de Obrigações</h2>
+      <button 
+        *hasPermission="Resources.OBRIGACOES; actions: Actions.CREATE"
+        class="btn btn-primary" 
+        (click)="novaObrigacao()"
+        [disabled]="carregando">
+        <i class="icon-plus"></i>
+        Nova Obrigação
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card-content">
+      <div class="filters-container">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Norma:</label>
+      <select [(ngModel)]="filtros.normaId">
+        <option value="">Todas as normas</option>
+        <option *ngFor="let norma of normas" [value]="norma.id">
+          {{norma.nome}}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Tipo:</label>
+      <select [(ngModel)]="filtros.tipo">
+        <option value="">Todos os tipos</option>
+        <option *ngFor="let tipo of tiposObrigacao" [value]="tipo.value">
+          {{tipo.label}}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Unidade:</label>
+      <select [(ngModel)]="filtros.unidadeId">
+        <option value="">Todas as unidades</option>
+        <option *ngFor="let unidade of unidades" [value]="unidade.id">
+          {{unidade.nome}}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Situação:</label>
+      <select [(ngModel)]="filtros.situacao">
+        <option value="">Todas as situações</option>
+        <option *ngFor="let situacao of situacoes" [value]="situacao.value">
+          {{situacao.label}}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Prioridade:</label>
+      <select [(ngModel)]="filtros.prioridade">
+        <option value="">Todas as prioridades</option>
+        <option *ngFor="let prioridade of prioridades" [value]="prioridade.value">
+          {{prioridade.label}}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Vencimento de:</label>
+      <input type="date" [(ngModel)]="filtros.vencimentoAPartirDe">
+    </div>
+
+    <div class="filter-group">
+      <label>Até:</label>
+      <input type="date" [(ngModel)]="filtros.vencimentoAte">
+    </div>
+
+    <div class="filter-group">
+      <label>Buscar:</label>
+      <input type="text" [(ngModel)]="filtros.termo" placeholder="Título, descrição...">
+    </div>
+  </div>
+
+  <div class="filters-actions">
+    <button class="btn btn-primary" (click)="aplicarFiltros()">
+      🔍 Filtrar
+    </button>
+    <button class="btn btn-secondary" (click)="limparFiltros()">
+      🗑️ Limpar
+    </button>
+    <button class="btn btn-success" (click)="abrirDialogNovaObrigacao()">
+      ➕ Nova Obrigação
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="carregando" class="loading">
+  <div class="spinner"></div>
+  <p>Carregando obrigações...</p>
+</div>
+
+<!-- Tabela de Obrigações -->
+<div *ngIf="!carregando" class="data-table-container">
+  <div class="table-header">
+    <h3>📋 Lista de Obrigações</h3>
+    <div class="table-info">
+      {{totalElements}} obrigação(ões) encontrada(s)
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table" *ngIf="obrigacoes.length > 0">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Norma</th>
+          <th>Tipo</th>
+          <th>Unidades Responsáveis</th>
+          <th>Prazo</th>
+          <th>Situação</th>
+          <th>Prioridade</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let obrigacao of obrigacoes">
+          <td>
+            <div class="titulo-cell">
+              <strong>{{obrigacao.titulo}}</strong>
+              <small>{{obrigacao.descricao | slice:0:100}}{{obrigacao.descricao.length > 100 ? '...' : ''}}</small>
+            </div>
+          </td>
+          <td>
+            <span class="norma-info">{{getNomaNorma(obrigacao.normaId)}}</span>
+          </td>
+          <td>
+            <span class="badge badge-tipo">{{getTipoLabel(obrigacao.tipo)}}</span>
+          </td>
+          <td>
+            <div class="unidades-list">
+              {{getNomesUnidades(obrigacao.unidadesResponsaveis)}}
+            </div>
+          </td>
+          <td>
+            <span class="prazo-info">{{obrigacao.prazoConformidade | date:'dd/MM/yyyy'}}</span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getSituacaoClass(obrigacao.situacao)">
+              {{getSituacaoLabel(obrigacao.situacao)}}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getPrioridadeClass(obrigacao.prioridade)">
+              {{getPrioridadeLabel(obrigacao.prioridade)}}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button 
+                class="btn-icon btn-info"
+                (click)="verDetalhes(obrigacao)"
+                title="Ver detalhes">
+                👁️
+              </button>
+              <button 
+                class="btn-icon btn-edit"
+                (click)="editarObrigacao(obrigacao)"
+                title="Editar">
+                ✏️
+              </button>
+              <button 
+                class="btn-icon btn-delete"
+                (click)="excluirObrigacao(obrigacao)"
+                title="Excluir">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty state -->
+    <div *ngIf="obrigacoes.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>Nenhuma obrigação encontrada</h3>
+      <p>Não há obrigações cadastradas ou que atendam aos filtros aplicados.</p>
+      <button class="btn btn-success" (click)="abrirDialogNovaObrigacao()">
+        ➕ Cadastrar Primeira Obrigação
+      </button>
+    </div>
+  </div>
+
+  <!-- Paginação -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button 
+      class="btn btn-secondary"
+      [disabled]="currentPage === 0"
+      (click)="paginaAnterior()">
+      ← Anterior
+    </button>
+    
+    <span class="page-info">
+      Página {{currentPage + 1}} de {{totalPages}}
+    </span>
+    
+    <button 
+      class="btn btn-secondary"
+      [disabled]="currentPage >= totalPages - 1"
+      (click)="proximaPagina()">
+      Próxima →
+    </button>
+  </div>
+</div>
+
+<!-- Dialog de Cadastro/Edição -->
+<app-dialog 
+  *ngIf="mostrarFormulario"
+  [title]="obrigacaoEditando ? 'Editar Obrigação' : 'Nova Obrigação'"
+  [width]="'900px'"
+  (onClose)="onDialogClosed()">
+  
+  <div class="form-container">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="norma">Norma *</label>
+        <select id="norma" [(ngModel)]="obrigacaoForm.normaId" required>
+          <option value="">Selecione uma norma</option>
+          <option *ngFor="let norma of normas" [value]="norma.id">
+            {{norma.nome}} - {{norma.numero}}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="tipo">Tipo *</label>
+        <select id="tipo" [(ngModel)]="obrigacaoForm.tipo" required>
+          <option *ngFor="let tipo of tiposObrigacao" [value]="tipo.value">
+            {{tipo.label}}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="titulo">Título *</label>
+      <input 
+        type="text" 
+        id="titulo"
+        [(ngModel)]="obrigacaoForm.titulo" 
+        placeholder="Título da obrigação"
+        required>
+    </div>
+
+    <div class="form-group">
+      <label for="descricao">Descrição *</label>
+      <textarea 
+        id="descricao"
+        [(ngModel)]="obrigacaoForm.descricao" 
+        placeholder="Descrição detalhada da obrigação"
+        rows="4"
+        required></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="prazo">Prazo de Conformidade *</label>
+        <input 
+          type="date" 
+          id="prazo"
+          [(ngModel)]="obrigacaoForm.prazoConformidade" 
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="recorrencia">Recorrência *</label>
+        <select id="recorrencia" [(ngModel)]="obrigacaoForm.recorrencia" required>
+          <option *ngFor="let recorrencia of recorrencias" [value]="recorrencia.value">
+            {{recorrencia.label}}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="prioridade">Prioridade *</label>
+        <select id="prioridade" [(ngModel)]="obrigacaoForm.prioridade" required>
+          <option *ngFor="let prioridade of prioridades" [value]="prioridade.value">
+            {{prioridade.label}}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Unidades Responsáveis -->
+    <div class="form-group">
+      <label>Unidades Responsáveis *</label>
+      <div class="checkbox-grid">
+        <div *ngFor="let unidade of unidades" class="checkbox-item">
+          <input 
+            type="checkbox"
+            [id]="'unidade-' + unidade.id"
+            [checked]="isUnidadeSelecionada(unidade.id!)"
+            (change)="toggleUnidade(unidade.id!, $event)">
+          <label [for]="'unidade-' + unidade.id">{{unidade.nome}}</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Obrigações Alteradas -->
+    <div class="form-group" *ngIf="obrigacoesDisponiveis.length > 0">
+      <label>Obrigações Alteradas por esta (opcional)</label>
+      <div class="checkbox-grid">
+        <div *ngFor="let obrigacao of obrigacoesDisponiveis" class="checkbox-item">
+          <input 
+            type="checkbox"
+            [id]="'obrigacao-' + obrigacao.id"
+            [checked]="isObrigacaoAlteradaSelecionada(obrigacao.id!)"
+            (change)="toggleObrigacaoAlterada(obrigacao.id!, $event)">
+          <label [for]="'obrigacao-' + obrigacao.id">{{obrigacao.titulo}}</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observacoes">Observações</label>
+      <textarea 
+        id="observacoes"
+        [(ngModel)]="obrigacaoForm.observacoes" 
+        placeholder="Observações adicionais"
+        rows="3"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="onDialogClosed()" type="button">
+        Cancelar
+      </button>
+      <button class="btn btn-primary" (click)="salvar()" [disabled]="carregando">
+        <span *ngIf="carregando">Salvando...</span>
+        <span *ngIf="!carregando">{{obrigacaoEditando ? 'Atualizar' : 'Cadastrar'}}</span>
+      </button>
+    </div>
+  </div>
+</app-dialog>
+
+<!-- Dialog de Detalhes -->
+<app-dialog
+  *ngIf="mostrarDetalhes && obrigacaoDetalhes"
+  title="Detalhes da Obrigação"
+  [width]="'700px'"
+  (onClose)="fecharDialog()">
+  
+  <div class="detalhes-container">
+    <div class="detalhe-section">
+      <h4>Informações Gerais</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Título:</span>
+        <span class="detalhe-value">{{obrigacaoDetalhes.titulo}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Descrição:</span>
+        <span class="detalhe-value">{{obrigacaoDetalhes.descricao}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Norma:</span>
+        <span class="detalhe-value">{{getNomaNorma(obrigacaoDetalhes.normaId)}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Tipo:</span>
+        <span class="detalhe-value badge badge-tipo">{{getTipoLabel(obrigacaoDetalhes.tipo)}}</span>
+      </div>
+    </div>
+
+    <div class="detalhe-section">
+      <h4>Responsabilidade e Prazos</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Unidades Responsáveis:</span>
+        <span class="detalhe-value">{{getNomesUnidades(obrigacaoDetalhes.unidadesResponsaveis)}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Prazo de Conformidade:</span>
+        <span class="detalhe-value">{{obrigacaoDetalhes.prazoConformidade | date:'dd/MM/yyyy'}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Recorrência:</span>
+        <span class="detalhe-value">{{obrigacaoDetalhes.recorrencia}}</span>
+      </div>
+    </div>
+
+    <div class="detalhe-section">
+      <h4>Status</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Situação:</span>
+        <span class="detalhe-value">
+          <span class="badge" [ngClass]="getSituacaoClass(obrigacaoDetalhes.situacao)">
+            {{getSituacaoLabel(obrigacaoDetalhes.situacao)}}
+          </span>
+        </span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Prioridade:</span>
+        <span class="detalhe-value">
+          <span class="badge" [ngClass]="getPrioridadeClass(obrigacaoDetalhes.prioridade)">
+            {{getPrioridadeLabel(obrigacaoDetalhes.prioridade)}}
+          </span>
+        </span>
+      </div>
+      <div class="detalhe-row" *ngIf="obrigacaoDetalhes.observacoes">
+        <span class="detalhe-label">Observações:</span>
+        <span class="detalhe-value">{{obrigacaoDetalhes.observacoes}}</span>
+      </div>
+    </div>
+
+    <div class="detalhe-section" *ngIf="obrigacaoDetalhes.obrigacoesAlteradas && obrigacaoDetalhes.obrigacoesAlteradas.length > 0">
+      <h4>Obrigações Relacionadas</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Altera as obrigações:</span>
+        <div class="obrigacoes-relacionadas">
+          <span *ngFor="let id of obrigacaoDetalhes.obrigacoesAlteradas" class="obrigacao-relacionada">
+            Obrigação #{{id}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="fecharDialog()">
+        Fechar
+      </button>
+      <button class="btn btn-primary" (click)="editarObrigacao(obrigacaoDetalhes)">
+        ✏️ Editar
+      </button>
+    </div>
+  </div>
+</app-dialog>
+
+    </div>
+  </div>
+</div>

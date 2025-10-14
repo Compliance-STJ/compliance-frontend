@@ -1,6 +1,14 @@
-import { Component, NO_ERRORS_SCHEMA } from "@angular/core"
+import { Component, NO_ERRORS_SCHEMA, OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { NgFor, NgIf } from "@angular/common"
+import { FormsModule } from "@angular/forms"
+import { NormaService } from './norma.service'
+import { Norma, NormaPage } from './norma.model'
+import { SituacaoNormaService } from '../SituacaoNorma/situacao-norma.service'
+import { OrigemService } from '../origem/origem.service'
+import { SituacaoNorma } from '../SituacaoNorma/situacao-norma.model'
+import { Origem } from '../origem/origem.model'
+import { DialogComponent } from '../dialog/dialog.component'
+import { ToastService } from '../../services/toast.service'
 
 interface Responsavel {
   id: number
@@ -45,16 +53,34 @@ interface Evidencia {
 @Component({
   selector: "app-normas",
   standalone: true,
-  imports: [CommonModule, NgIf],
+  imports: [CommonModule, FormsModule, DialogComponent],
   templateUrl: "./normas.component.html",
   styleUrl: "./normas.component.css",
   schemas: [NO_ERRORS_SCHEMA]
 })
-export class NormasComponent {
-  expandedNormas: number[] = []
-  expandedObrigacoes: number[] = []
+export class NormasComponent implements OnInit {
+  // Listas de dados
+  normasData: Norma[] = []
+  situacoes: SituacaoNorma[] = []
+  origens: Origem[] = []
 
-  normasData: NormaWithObrigacoes[] = [
+  // Paginação
+  totalElements = 0
+  totalPages = 0
+  currentPage = 0
+  pageSize = 10
+
+  // Estados
+  loading = false
+  showNormaDialog = false
+  normaEditando: Norma | null = null
+
+  // Filtros
+  filtroSituacao: number | null = null
+  termoBusca = ''
+
+  // Mock data for demo - will be replaced by API data
+  normasDataMock: NormaWithObrigacoes[] = [
     {
       id: 1,
       nome: "Lei Geral de Proteção de Dados (LGPD)",
@@ -183,19 +209,90 @@ export class NormasComponent {
     },
   ]
 
-  showNormaDialog = false
+  // Dialogs antigos (manter para compatibilidade com mock data)
   showObrigacaoDialog = false
   showResponsavelDialog = false
   showEvidenciaDialog = false
+  expandedNormas: number[] = []
+  expandedObrigacoes: number[] = []
 
-  normaForm = {
-    nome: "",
-    numero: "",
-    situacao: "Ativa",
-    dataNorma: "",
-    categoria: "",
-    orgaoEmissor: "",
-    descricao: "",
+  // Formulário
+  normaForm: Norma = this.novoNormaForm()
+
+  constructor(
+    private normaService: NormaService,
+    private situacaoNormaService: SituacaoNormaService,
+    private origemService: OrigemService,
+    private toastService: ToastService
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarSituacoes()
+    this.carregarOrigens()
+    this.carregarNormas()
+  }
+
+  novoNormaForm(): Norma {
+    return {
+      nome: "",
+      numero: "",
+      dataNorma: "",
+      situacaoId: 1,
+    }
+  }
+
+  carregarSituacoes(): void {
+    this.situacaoNormaService.listar().subscribe({
+      next: (situacoes) => {
+        this.situacoes = situacoes
+      },
+      error: (error) => {
+        console.error('Erro ao carregar situações:', error)
+      }
+    })
+  }
+
+  carregarOrigens(): void {
+    this.origemService.listarAtivas().subscribe({
+      next: (origens) => {
+        this.origens = origens
+      },
+      error: (error) => {
+        console.error('Erro ao carregar origens:', error)
+      }
+    })
+  }
+
+  carregarNormas(page: number = 0): void {
+    this.loading = true
+    this.normaService.listarNormas(page, this.pageSize).subscribe({
+      next: (response: NormaPage) => {
+        this.normasData = response.content
+        this.totalElements = response.totalElements
+        this.totalPages = response.totalPages
+        this.currentPage = response.number
+        this.loading = false
+      },
+      error: (error) => {
+        console.error('Erro ao carregar normas:', error)
+        this.loading = false
+        this.toastService.loadError('normas', 'Não foi possível carregar a lista de normas.')
+        // Keep mock data if API fails
+        this.normasData = []
+      }
+    })
+  }
+
+  proximaPagina(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.carregarNormas(this.currentPage + 1)
+    }
+  }
+
+  paginaAnterior(): void {
+    if (this.currentPage > 0) {
+      this.carregarNormas(this.currentPage - 1)
+    }
   }
 
   obrigacaoForm = {
@@ -221,7 +318,8 @@ export class NormasComponent {
     obrigacaoId: 0,
   }
 
-  toggleNorma(normaId: number): void {
+  toggleNorma(normaId: number | undefined): void {
+    if (normaId === undefined) return
     const index = this.expandedNormas.indexOf(normaId)
     if (index > -1) {
       this.expandedNormas.splice(index, 1)
@@ -239,7 +337,8 @@ export class NormasComponent {
     }
   }
 
-  isNormaExpanded(normaId: number): boolean {
+  isNormaExpanded(normaId: number | undefined): boolean {
+    if (normaId === undefined) return false
     return this.expandedNormas.includes(normaId)
   }
 
@@ -247,10 +346,12 @@ export class NormasComponent {
     return this.expandedObrigacoes.includes(obrigacaoId)
   }
 
-  getSituacaoClass(situacao: string): string {
+  getSituacaoClass(situacao: string | undefined): string {
+    if (!situacao) return "badge-secondary"
     switch (situacao) {
       case "Conforme":
       case "Ativa":
+      case "ATIVA":
         return "badge-success"
       case "Não Conforme":
         return "badge-danger"
@@ -258,10 +359,21 @@ export class NormasComponent {
       case "Pendente":
         return "badge-warning"
       case "Em Revisão":
+      case "REVISAO":
         return "badge-info"
       default:
         return "badge-secondary"
     }
+  }
+
+  getSituacaoDescricao(norma: Norma): string {
+    return norma.situacaoDescricao || norma.situacaoCodigo || 'Sem situação'
+  }
+
+  getObrigacoesCount(norma: any): number {
+    // For API normas, we don't have nested obligations yet
+    // For mock normas, we have the obrigacoes array
+    return norma.obrigacoes?.length || 0
   }
 
   getSituacaoIcon(situacao: string): string {
@@ -296,16 +408,71 @@ export class NormasComponent {
   }
 
   adicionarNovaNorma(): void {
-    this.normaForm = {
-      nome: "",
-      numero: "",
-      situacao: "Ativa",
-      dataNorma: "",
-      categoria: "",
-      orgaoEmissor: "",
-      descricao: "",
-    }
+    this.normaEditando = null
+    this.normaForm = this.novoNormaForm()
     this.showNormaDialog = true
+  }
+
+  editarNorma(norma: Norma): void {
+    this.normaEditando = norma
+    this.normaForm = { ...norma }
+    this.showNormaDialog = true
+  }
+
+  visualizarNorma(norma: Norma): void {
+    alert(`Norma: ${norma.nome}\nNúmero: ${norma.numero}\nDescrição: ${norma.descricao || 'N/A'}`)
+  }
+
+  filtrarPorSituacao(situacaoId: number | null): void {
+    this.filtroSituacao = situacaoId
+    this.currentPage = 0
+
+    if (situacaoId === null) {
+      this.carregarNormas(0)
+    } else {
+      this.loading = true
+      this.normaService.buscarPorSituacao(situacaoId, 0, this.pageSize).subscribe({
+        next: (response: NormaPage) => {
+          this.normasData = response.content
+          this.totalElements = response.totalElements
+          this.totalPages = response.totalPages
+          this.currentPage = response.number
+          this.loading = false
+        },
+        error: (error) => {
+          console.error('Erro ao filtrar normas:', error)
+          this.loading = false
+        }
+      })
+    }
+  }
+
+  buscar(): void {
+    if (!this.termoBusca.trim()) {
+      this.carregarNormas(0)
+      return
+    }
+
+    this.loading = true
+    this.normaService.buscarPorNome(this.termoBusca, 0, this.pageSize).subscribe({
+      next: (response: NormaPage) => {
+        this.normasData = response.content
+        this.totalElements = response.totalElements
+        this.totalPages = response.totalPages
+        this.currentPage = response.number
+        this.loading = false
+      },
+      error: (error) => {
+        console.error('Erro ao buscar normas:', error)
+        this.loading = false
+      }
+    })
+  }
+
+  formatarData(data: string | undefined): string {
+    if (!data) return '-'
+    const date = new Date(data)
+    return date.toLocaleDateString('pt-BR')
   }
 
   adicionarNovaObrigacao(normaId: number): void {
@@ -341,19 +508,71 @@ export class NormasComponent {
   }
 
   salvarNorma(): void {
-    const novaNorma: NormaWithObrigacoes = {
-      id: this.normasData.length + 1,
-      ...this.normaForm,
-      dataCadastro: new Date().toISOString().split("T")[0],
-      obrigacoes: [],
+    this.loading = true
+
+    if (this.normaEditando && this.normaEditando.id) {
+      // Atualizar norma existente
+      this.normaService.atualizarNorma(this.normaEditando.id, this.normaForm).subscribe({
+        next: (norma) => {
+          console.log('Norma atualizada com sucesso:', norma)
+          this.toastService.saveSuccess(`Norma "${this.normaForm.nome}"`)
+          this.showNormaDialog = false
+          this.carregarNormas(this.currentPage)
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar norma:', error)
+          this.loading = false
+          this.toastService.saveError(`Norma "${this.normaForm.nome}"`, 'Verifique os dados e tente novamente.')
+        }
+      })
+    } else {
+      // Criar nova norma
+      this.normaService.criarNorma(this.normaForm).subscribe({
+        next: (norma) => {
+          console.log('Norma criada com sucesso:', norma)
+          this.toastService.saveSuccess(`Norma "${this.normaForm.nome}"`)
+          this.showNormaDialog = false
+          this.carregarNormas(this.currentPage)
+        },
+        error: (error) => {
+          console.error('Erro ao criar norma:', error)
+          this.loading = false
+          this.toastService.saveError(`Norma "${this.normaForm.nome}"`, 'Verifique os dados e tente novamente.')
+        }
+      })
     }
-    this.normasData.push(novaNorma)
-    this.showNormaDialog = false
+  }
+
+  excluirNorma(id: number): void {
+    // Busca o nome da norma para mostrar no toast
+    const norma = this.normasData.find(n => n.id === id);
+    const nomeNorma = norma ? norma.nome : `Norma #${id}`;
+    
+    this.toastService.confirmDelete(nomeNorma, () => {
+      this.executarExclusaoNorma(id, nomeNorma);
+    });
+  }
+  
+  private executarExclusaoNorma(id: number, nomeNorma: string): void {
+    this.normaService.excluirNorma(id).subscribe({
+      next: () => {
+        console.log('Norma excluída com sucesso')
+        this.toastService.deleteSuccess(nomeNorma);
+        this.carregarNormas(this.currentPage)
+      },
+      error: (error) => {
+        console.error('Erro ao excluir norma:', error)
+        this.toastService.deleteError(nomeNorma, 'Verifique sua conexão e tente novamente.');
+      }
+    })
   }
 
   salvarObrigacao(): void {
     const norma = this.normasData.find((n) => n.id === this.obrigacaoForm.normaId)
     if (norma) {
+      if (!norma.obrigacoes) {
+        norma.obrigacoes = []
+      }
       const novaObrigacao: ObrigacaoWithResponsaveis = {
         id: Date.now(),
         ...this.obrigacaoForm,
@@ -367,6 +586,7 @@ export class NormasComponent {
 
   salvarResponsavel(): void {
     for (const norma of this.normasData) {
+      if (!norma.obrigacoes) continue
       const obrigacao = norma.obrigacoes.find((o) => o.id === this.responsavelForm.obrigacaoId)
       if (obrigacao) {
         const novoResponsavel: Responsavel = {
@@ -385,6 +605,7 @@ export class NormasComponent {
 
   salvarEvidencia(): void {
     for (const norma of this.normasData) {
+      if (!norma.obrigacoes) continue
       const obrigacao = norma.obrigacoes.find((o) => o.id === this.evidenciaForm.obrigacaoId)
       if (obrigacao) {
         const novaEvidencia = {
@@ -406,16 +627,19 @@ export class NormasComponent {
     this.showObrigacaoDialog = false
     this.showResponsavelDialog = false
     this.showEvidenciaDialog = false
+    this.normaEditando = null
+    this.normaForm = this.novoNormaForm()
   }
 
   editarResponsavel(responsavelId: number): void {
     // Implementação temporária do método editarResponsavel
     console.log('Editando responsável com ID:', responsavelId)
-    
+
     // Procura o responsável em todas as obrigações de todas as normas
     for (const norma of this.normasData) {
+      if (!norma.obrigacoes) continue
       for (const obrigacao of norma.obrigacoes) {
-        const responsavel = obrigacao.responsaveis.find(r => r.id === responsavelId)
+        const responsavel = obrigacao.responsaveis.find((r: Responsavel) => r.id === responsavelId)
         if (responsavel) {
           this.responsavelForm = {
             nome: responsavel.nome,
@@ -434,12 +658,13 @@ export class NormasComponent {
   visualizarResponsavel(responsavelId: number): void {
     // Implementação temporária do método visualizarResponsavel
     console.log('Visualizando responsável com ID:', responsavelId)
-    
+
     // Aqui você poderia implementar a lógica para mostrar detalhes do responsável
     // em um modal ou em uma área específica da página
     for (const norma of this.normasData) {
+      if (!norma.obrigacoes) continue
       for (const obrigacao of norma.obrigacoes) {
-        const responsavel = obrigacao.responsaveis.find(r => r.id === responsavelId)
+        const responsavel = obrigacao.responsaveis.find((r: Responsavel) => r.id === responsavelId)
         if (responsavel) {
           alert(`Detalhes do Responsável:
 Nome: ${responsavel.nome}

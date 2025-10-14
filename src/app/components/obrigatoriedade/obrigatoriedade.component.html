@@ -5,13 +5,6 @@
     <p class="page-subtitle">Gerencie os tipos de obrigatoriedade do sistema de compliance</p>
   </div>
 
-  <!-- Mensagens -->
-  <div class="messages" *ngIf="erro">
-    <div class="alert alert-error">
-      <i class="icon">✗</i>
-      {{ erro }}
-    </div>
-  </div>
 
   <!-- Estatísticas (opcional) -->
   <!-- <div class="stats-row" *ngIf="estatisticas">
@@ -39,89 +32,90 @@
     <p>Carregando...</p>
   </div>
 
-  <!-- Formulário -->
-  <div class="form-container" *ngIf="exibirFormulario">
-    <div class="form-header">
-      <h2>{{ modoEdicao ? 'Editar' : 'Nova' }} Obrigatoriedade</h2>
-    </div>
-    
+  <!-- Dialog para Formulário -->
+  <app-dialog
+    [isOpen]="mostrarFormulario"
+    [title]="obrigatoriedadeEditando ? 'Editar Obrigatoriedade' : 'Nova Obrigatoriedade'"
+    width="700px"
+    (closed)="onDialogClosed()">
+
     <form (ngSubmit)="salvarObrigatoriedade()" #obrigatoriedadeForm="ngForm">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label" for="nome">Nome *</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="nome"
-            [(ngModel)]="novaObrigatoriedade.nome" 
+            [(ngModel)]="novaObrigatoriedade.nome"
             name="nome"
             required
             maxlength="100"
             placeholder="Ex: Obrigatório, Recomendado, Opcional..."
             class="form-input">
         </div>
-        
+
         <div class="form-group">
           <label class="form-label" for="ordem">Ordem</label>
-          <input 
-            type="number" 
+          <input
+            type="number"
             id="ordem"
-            [(ngModel)]="novaObrigatoriedade.ordem" 
+            [(ngModel)]="novaObrigatoriedade.ordem"
             name="ordem"
             min="1"
             placeholder="Ordem de exibição"
             class="form-input">
         </div>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label" for="descricao">Descrição</label>
-        <textarea 
+        <textarea
           id="descricao"
-          [(ngModel)]="novaObrigatoriedade.descricao" 
+          [(ngModel)]="novaObrigatoriedade.descricao"
           name="descricao"
           maxlength="1000"
           rows="3"
           placeholder="Descrição detalhada da obrigatoriedade..."
           class="form-textarea"></textarea>
       </div>
-      
+
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label" for="dataInicio">Data de Início</label>
-          <input 
-            type="date" 
+          <input
+            type="date"
             id="dataInicio"
-            [(ngModel)]="novaObrigatoriedade.dataInicio" 
+            [(ngModel)]="novaObrigatoriedade.dataInicio"
             name="dataInicio"
             class="form-input">
         </div>
-        
+
         <div class="form-group">
           <label class="form-label" for="dataFim">Data de Fim</label>
-          <input 
-            type="date" 
+          <input
+            type="date"
             id="dataFim"
-            [(ngModel)]="novaObrigatoriedade.dataFim" 
+            [(ngModel)]="novaObrigatoriedade.dataFim"
             name="dataFim"
             class="form-input">
         </div>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label">
-          <input 
-            type="checkbox" 
-            [(ngModel)]="novaObrigatoriedade.ativo" 
+          <input
+            type="checkbox"
+            [(ngModel)]="novaObrigatoriedade.ativo"
             name="ativo"
-            class="form-checkbox"> 
+            class="form-checkbox">
           Obrigatoriedade ativa
         </label>
       </div>
-      
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" [disabled]="carregando || !obrigatoriedadeForm.form.valid">
           <i class="icon">💾</i>
-          {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
+          {{carregando ? 'Salvando...' : (obrigatoriedadeEditando ? 'Atualizar' : 'Salvar')}}
         </button>
         <button type="button" class="btn btn-secondary" (click)="cancelarEdicao()">
           <i class="icon">✗</i>
@@ -129,10 +123,10 @@
         </button>
       </div>
     </form>
-  </div>
+  </app-dialog>
 
   <!-- Lista de Obrigatoriedades -->
-  <div class="table-container" *ngIf="!exibirFormulario && !carregando">
+  <div class="table-container" *ngIf="!carregando">
     <div class="table-header">
       <h3>Obrigatoriedades Cadastradas ({{ obrigatoriedades.length }})</h3>
     </div>
@@ -278,7 +272,7 @@
   </div>
 
   <!-- Detalhes da Obrigatoriedade Selecionada -->
-  <div class="details-section" *ngIf="obrigatoriedadeSelecionada && !exibirFormulario">
+  <div class="details-section" *ngIf="obrigatoriedadeSelecionada && !mostrarFormulario">
     <div class="details-header">
       <h3>Detalhes da Obrigatoriedade</h3>
       <button class="btn btn-secondary" (click)="obrigatoriedadeSelecionada = null">

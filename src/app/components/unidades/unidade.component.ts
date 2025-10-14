@@ -3,15 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Unidade, UnidadeEstatisticas } from './unidade.model';
 import { UnidadeService } from './unidade.service';
+import { ToastService } from '../../services/toast.service';
+import { HasPermissionDirective, HasRoleDirective } from '../../directives/permission.directive';
+import { Resources, Actions } from '../../models/user.model';
+import { DialogComponent } from '../dialog/dialog.component';
 
 @Component({
   selector: 'app-unidades',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HasPermissionDirective, HasRoleDirective, DialogComponent],
   templateUrl: './unidade.component.html',
   styleUrls: ['./unidade.component.css']
 })
 export class UnidadeComponent implements OnInit {
+  // Sistema de toast implementado
   unidades: Unidade[] = [];
   unidadeSelecionada: Unidade = this.novaUnidade();
   unidadeEditando: Unidade | null = null;
@@ -20,12 +25,21 @@ export class UnidadeComponent implements OnInit {
   // Estados da interface
   mostrarFormulario = false;
   carregando = false;
-  erro: string | null = null;
-  sucesso: string | null = null;
   filtroAtivo = 'todas'; // 'todas', 'ativas', 'inativas'
   termoBusca = '';
+  
+  // Mensagens de feedback
+  erro: string | null = null;
+  sucesso: string | null = null;
 
-  constructor(private unidadeService: UnidadeService) { }
+  // Expor constants para o template
+  Resources = Resources;
+  Actions = Actions;
+
+  constructor(
+    private unidadeService: UnidadeService,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void {
     this.carregarUnidades();
@@ -37,7 +51,6 @@ export class UnidadeComponent implements OnInit {
    */
   carregarUnidades(): void {
     this.carregando = true;
-    this.erro = null;
 
     let observable;
     if (this.filtroAtivo === 'ativas') {
@@ -53,7 +66,8 @@ export class UnidadeComponent implements OnInit {
         this.carregando = false;
       },
       error: (err) => {
-        this.erro = 'Erro ao carregar unidades: ' + (err.error?.erro || err.message);
+        const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+        this.toastService.loadError('unidades', errorMessage);
         this.carregando = false;
       }
     });
@@ -83,7 +97,8 @@ export class UnidadeComponent implements OnInit {
           this.unidades = unidades;
         },
         error: (err) => {
-          this.erro = 'Erro na busca: ' + (err.error?.erro || err.message);
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro na busca', errorMessage);
         }
       });
     }
@@ -140,6 +155,13 @@ export class UnidadeComponent implements OnInit {
   }
 
   /**
+   * Método chamado quando o dialog é fechado
+   */
+  onDialogClosed(): void {
+    this.cancelar();
+  }
+
+  /**
    * Salva a unidade (criar ou atualizar)
    */
   salvar(): void {
@@ -148,7 +170,6 @@ export class UnidadeComponent implements OnInit {
     }
 
     this.carregando = true;
-    this.erro = null;
 
     const observable = this.unidadeEditando
       ? this.unidadeService.atualizar(this.unidadeEditando.id!, this.unidadeSelecionada)
@@ -156,16 +177,19 @@ export class UnidadeComponent implements OnInit {
 
     observable.subscribe({
       next: (unidade) => {
-        this.sucesso = this.unidadeEditando 
-          ? 'Unidade atualizada com sucesso!' 
-          : 'Unidade criada com sucesso!';
+        if (this.unidadeEditando) {
+          this.toastService.saveSuccess('Unidade');
+        } else {
+          this.toastService.success('Unidade criada', 'Unidade foi criada com sucesso!');
+        }
         this.mostrarFormulario = false;
         this.carregarUnidades();
         this.carregarEstatisticas();
         this.carregando = false;
       },
       error: (err) => {
-        this.erro = err.error?.erro || 'Erro ao salvar unidade';
+        const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+        this.toastService.saveError('unidade', errorMessage);
         this.carregando = false;
       }
     });
@@ -177,18 +201,19 @@ export class UnidadeComponent implements OnInit {
   ativar(unidade: Unidade): void {
     if (!unidade.id) return;
 
-    if (confirm(`Tem certeza que deseja ativar a unidade "${unidade.nome}"?`)) {
-      this.unidadeService.ativar(unidade.id).subscribe({
+    this.toastService.confirmActivate(unidade.nome, () => {
+      this.unidadeService.ativar(unidade.id!).subscribe({
         next: () => {
-          this.sucesso = 'Unidade ativada com sucesso!';
+          this.toastService.operationSuccess('Ativação da unidade');
           this.carregarUnidades();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao ativar unidade';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao ativar', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -197,18 +222,19 @@ export class UnidadeComponent implements OnInit {
   inativar(unidade: Unidade): void {
     if (!unidade.id) return;
 
-    if (confirm(`Tem certeza que deseja inativar a unidade "${unidade.nome}"?`)) {
-      this.unidadeService.inativar(unidade.id).subscribe({
+    this.toastService.confirmDeactivate(unidade.nome, () => {
+      this.unidadeService.inativar(unidade.id!).subscribe({
         next: () => {
-          this.sucesso = 'Unidade inativada com sucesso!';
+          this.toastService.operationSuccess('Inativação da unidade');
           this.carregarUnidades();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao inativar unidade';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao inativar', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -217,18 +243,19 @@ export class UnidadeComponent implements OnInit {
   remover(unidade: Unidade): void {
     if (!unidade.id) return;
 
-    if (confirm(`Tem certeza que deseja remover a unidade "${unidade.nome}"?`)) {
-      this.unidadeService.remover(unidade.id).subscribe({
+    this.toastService.confirmDelete(unidade.nome, () => {
+      this.unidadeService.remover(unidade.id!).subscribe({
         next: () => {
-          this.sucesso = 'Unidade removida com sucesso!';
+          this.toastService.deleteSuccess('Unidade');
           this.carregarUnidades();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao remover unidade';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.deleteError('unidade', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -251,27 +278,27 @@ export class UnidadeComponent implements OnInit {
    */
   private validarFormulario(): boolean {
     if (!this.unidadeSelecionada.nome.trim()) {
-      this.erro = 'Nome da unidade é obrigatório';
+      this.toastService.warning('Campo obrigatório', 'Nome da unidade é obrigatório');
       return false;
     }
 
     if (!this.unidadeSelecionada.sigla.trim()) {
-      this.erro = 'Sigla da unidade é obrigatória';
+      this.toastService.warning('Campo obrigatório', 'Sigla da unidade é obrigatória');
       return false;
     }
 
     if (this.unidadeSelecionada.nome.length > 100) {
-      this.erro = 'Nome deve ter no máximo 100 caracteres';
+      this.toastService.warning('Limite excedido', 'Nome deve ter no máximo 100 caracteres');
       return false;
     }
 
     if (this.unidadeSelecionada.sigla.length > 20) {
-      this.erro = 'Sigla deve ter no máximo 20 caracteres';
+      this.toastService.warning('Limite excedido', 'Sigla deve ter no máximo 20 caracteres');
       return false;
     }
 
     if (this.unidadeSelecionada.descricao && this.unidadeSelecionada.descricao.length > 500) {
-      this.erro = 'Descrição deve ter no máximo 500 caracteres';
+      this.toastService.warning('Limite excedido', 'Descrição deve ter no máximo 500 caracteres');
       return false;
     }
 
@@ -282,8 +309,6 @@ export class UnidadeComponent implements OnInit {
    * Limpa mensagens de erro e sucesso
    */
   private limparMensagens(): void {
-    this.erro = null;
-    this.sucesso = null;
   }
 
   /**
@@ -318,23 +343,24 @@ export class UnidadeComponent implements OnInit {
       ? `Tem certeza que deseja inativar a unidade "${unidade.nome}"?`
       : `Tem certeza que deseja ativar a unidade "${unidade.nome}"?`;
       
-    if (confirm(mensagem)) {
+    const action = unidade.ativo ? 'desativar' : 'ativar';
+    this.toastService.confirmStatusChange(unidade.nome, action, () => {
       const observable = unidade.ativo
-        ? this.unidadeService.inativar(unidade.id)
-        : this.unidadeService.ativar(unidade.id);
-        
+        ? this.unidadeService.inativar(unidade.id!)
+        : this.unidadeService.ativar(unidade.id!);
+
       observable.subscribe({
         next: () => {
-          this.sucesso = unidade.ativo
-            ? 'Unidade inativada com sucesso!'
-            : 'Unidade ativada com sucesso!';
+          const operation = unidade.ativo ? 'Inativação' : 'Ativação';
+          this.toastService.operationSuccess(`${operation} da unidade`);
           this.carregarUnidades();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || `Erro ao ${unidade.ativo ? 'inativar' : 'ativar'} unidade`;
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao alterar status', errorMessage);
         }
       });
-    }
+    });
   }
 }

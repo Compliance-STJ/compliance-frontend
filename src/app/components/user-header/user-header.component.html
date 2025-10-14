@@ -1,0 +1,64 @@
+<div class="user-header" *ngIf="currentUser">
+  <div class="user-info" (click)="toggleUserMenu()">
+    <div class="user-avatar">
+      {{ currentUser.user.name.charAt(0).toUpperCase() }}
+    </div>
+    <div class="user-details">
+      <div class="user-name">{{ currentUser.user.name }}</div>
+      <div class="user-role">{{ getRoleDisplayName(currentUser.user.role) }}</div>
+    </div>
+    <div class="dropdown-arrow" [class.open]="showUserMenu">
+      ▼
+    </div>
+  </div>
+
+  <div class="user-menu" [class.show]="showUserMenu" (click)="closeUserMenu()">
+    <div class="user-menu-header">
+      <div class="user-full-info">
+        <div class="info-item">
+          <strong>Nome:</strong> {{ currentUser.user.name }}
+        </div>
+        <div class="info-item">
+          <strong>Email:</strong> {{ currentUser.user.email }}
+        </div>
+        <div class="info-item">
+          <strong>Perfil:</strong> {{ getRoleDisplayName(currentUser.user.role) }}
+        </div>
+        <div class="info-item" *ngIf="currentUser.user.unit">
+          <strong>Unidade:</strong> {{ currentUser.user.unit }}
+        </div>
+        <div class="info-item" *ngIf="currentUser.user.lastLoginAt">
+          <strong>Último acesso:</strong> {{ currentUser.user.lastLoginAt | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="user-menu-divider"></div>
+
+    <div class="user-menu-actions">
+      <!-- Apenas ACR pode acessar configurações de usuários -->
+      <div *appHasRole="UserRole.ACR">
+        <a routerLink="/usuarios" class="menu-action">
+          <i class="icon">👥</i>
+          Gerenciar Usuários
+        </a>
+      </div>
+
+      <!-- ACR e Responsáveis podem ver auditoria -->
+      <div *appHasRole="[UserRole.ACR, UserRole.RESPONSAVEL]">
+        <a routerLink="/auditoria" class="menu-action">
+          <i class="icon">📋</i>
+          Auditoria
+        </a>
+      </div>
+
+      <div class="menu-action" (click)="logout()">
+        <i class="icon">🚪</i>
+        Sair do Sistema
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay para fechar o menu ao clicar fora -->
+  <div class="overlay" *ngIf="showUserMenu" (click)="closeUserMenu()"></div>
+</div>

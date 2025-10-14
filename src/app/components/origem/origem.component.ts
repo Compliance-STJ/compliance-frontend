@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Origem, OrigemEstatisticas } from './origem.model';
 import { OrigemService } from './origem.service';
+import { ToastService } from '../../services/toast.service';
+import { DialogComponent } from '../dialog/dialog.component';
 
 @Component({
   selector: 'app-origem',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DialogComponent],
   templateUrl: './origem.component.html',
   styleUrls: ['./origem.component.css']
 })
@@ -25,7 +27,10 @@ export class OrigemComponent implements OnInit {
   filtroAtivo = 'todas'; // 'todas', 'ativas', 'inativas', 'vigentes'
   termoBusca = '';
 
-  constructor(private origemService: OrigemService) { }
+  constructor(
+    private origemService: OrigemService,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void {
     this.carregarOrigens();
@@ -115,7 +120,7 @@ export class OrigemComponent implements OnInit {
   }
 
   /**
-   * Abre o formulário para nova origem
+   * Abre o dialog para nova origem
    */
   novaOrigemFormulario(): void {
     this.origemSelecionada = this.novaOrigem();
@@ -125,7 +130,7 @@ export class OrigemComponent implements OnInit {
   }
 
   /**
-   * Abre o formulário para editar origem
+   * Abre o dialog para editar origem
    */
   editarOrigem(origem: Origem): void {
     this.origemSelecionada = { ...origem };
@@ -135,13 +140,20 @@ export class OrigemComponent implements OnInit {
   }
 
   /**
-   * Cancela a edição/criação
+   * Cancela a edição/criação e fecha o dialog
    */
   cancelar(): void {
     this.mostrarFormulario = false;
     this.origemSelecionada = this.novaOrigem();
     this.origemEditando = null;
     this.limparMensagens();
+  }
+
+  /**
+   * Método chamado quando o dialog é fechado
+   */
+  onDialogClosed(): void {
+    this.cancelar();
   }
 
   /**
@@ -161,16 +173,15 @@ export class OrigemComponent implements OnInit {
 
     observable.subscribe({
       next: (origem) => {
-        this.sucesso = this.origemEditando 
-          ? 'Origem atualizada com sucesso!' 
-          : 'Origem criada com sucesso!';
+        const operacao = this.origemEditando ? 'atualizada' : 'criada';
+        this.toastService.saveSuccess(`Origem ${operacao}`);
         this.mostrarFormulario = false;
         this.carregarOrigens();
         this.carregarEstatisticas();
         this.carregando = false;
       },
       error: (err) => {
-        this.erro = err.error?.erro || 'Erro ao salvar origem';
+        this.toastService.saveError('origem', err.error?.erro || 'Erro ao salvar origem');
         this.carregando = false;
       }
     });
@@ -182,18 +193,19 @@ export class OrigemComponent implements OnInit {
   ativar(origem: Origem): void {
     if (!origem.id) return;
 
-    if (confirm('Tem certeza que deseja ativar esta origem?')) {
-      this.origemService.ativar(origem.id).subscribe({
+    this.toastService.confirmActivate(origem.nome, () => {
+      this.origemService.ativar(origem.id!).subscribe({
         next: () => {
-          this.sucesso = 'Origem ativada com sucesso!';
+          this.toastService.operationSuccess('Ativação da origem');
           this.carregarOrigens();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao ativar origem';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao ativar', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -202,18 +214,19 @@ export class OrigemComponent implements OnInit {
   inativar(origem: Origem): void {
     if (!origem.id) return;
 
-    if (confirm('Tem certeza que deseja inativar esta origem?')) {
-      this.origemService.inativar(origem.id).subscribe({
+    this.toastService.confirmDeactivate(origem.nome, () => {
+      this.origemService.inativar(origem.id!).subscribe({
         next: () => {
-          this.sucesso = 'Origem inativada com sucesso!';
+          this.toastService.operationSuccess('Desativação da origem');
           this.carregarOrigens();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao inativar origem';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao desativar', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -222,18 +235,19 @@ export class OrigemComponent implements OnInit {
   remover(origem: Origem): void {
     if (!origem.id) return;
 
-    if (confirm('Tem certeza que deseja remover esta origem?')) {
-      this.origemService.remover(origem.id).subscribe({
+    this.toastService.confirmDelete(origem.nome, () => {
+      this.origemService.deletar(origem.id!).subscribe({
         next: () => {
-          this.sucesso = 'Origem removida com sucesso!';
+          this.toastService.deleteSuccess('Origem');
           this.carregarOrigens();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || 'Erro ao remover origem';
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.deleteError('origem', errorMessage);
         }
       });
-    }
+    });
   }
 
   /**
@@ -305,28 +319,25 @@ export class OrigemComponent implements OnInit {
   alternarStatus(origem: Origem): void {
     if (!origem.id) return;
     
-    const mensagem = origem.ativo
-      ? 'Tem certeza que deseja inativar esta origem?'
-      : 'Tem certeza que deseja ativar esta origem?';
-      
-    if (confirm(mensagem)) {
+    const action = origem.ativo ? 'desativar' : 'ativar';
+    this.toastService.confirmStatusChange(origem.nome, action, () => {
       const observable = origem.ativo
-        ? this.origemService.inativar(origem.id)
-        : this.origemService.ativar(origem.id);
-        
+        ? this.origemService.inativar(origem.id!)
+        : this.origemService.ativar(origem.id!);
+
       observable.subscribe({
         next: () => {
-          this.sucesso = origem.ativo
-            ? 'Origem inativada com sucesso!'
-            : 'Origem ativada com sucesso!';
+          const operation = origem.ativo ? 'Desativação' : 'Ativação';
+          this.toastService.operationSuccess(`${operation} da origem`);
           this.carregarOrigens();
           this.carregarEstatisticas();
         },
         error: (err) => {
-          this.erro = err.error?.erro || `Erro ao ${origem.ativo ? 'inativar' : 'ativar'} origem`;
+          const errorMessage = err.error?.erro || err.message || 'Erro desconhecido';
+          this.toastService.error('Erro ao alterar status', errorMessage);
         }
       });
-    }
+    });
   }
   
 }

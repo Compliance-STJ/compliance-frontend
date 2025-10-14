@@ -1,0 +1,480 @@
+<div class="main-content">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">🤖 Extração Automática de Obrigações</h1>
+    <p class="page-subtitle">Utilize IA para extrair obrigações de compliance automaticamente a partir de URLs</p>
+  </div>
+
+  <!-- Status da API -->
+  <div *ngIf="apiStatus" class="alert alert-info">
+    <strong>Status da API:</strong> {{apiStatus}}
+  </div>
+
+  <!-- Formulário de Extração -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">📥 Inserir URL da Norma</h2>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="extrair()">
+        <div class="form-group">
+          <label class="form-label" for="urlNorma">
+            URL da Norma/Resolução *
+          </label>
+          <input
+            type="url"
+            id="urlNorma"
+            name="urlNorma"
+            class="form-input"
+            [(ngModel)]="urlNorma"
+            placeholder="https://atos.cnj.jus.br/atos/detalhar/5163"
+            [disabled]="carregando"
+            required>
+          <small class="form-help">
+            Cole a URL completa da página contendo a norma ou resolução
+          </small>
+        </div>
+
+        <!-- URLs de Exemplo -->
+        <div class="exemplos-url">
+          <p class="form-label">Exemplos de URLs:</p>
+          <div class="exemplos-grid">
+            <button
+              *ngFor="let exemplo of exemplosUrl"
+              type="button"
+              class="btn btn-outline-secondary btn-sm"
+              (click)="usarExemplo(exemplo)"
+              [disabled]="carregando">
+              {{exemplo | slice:0:50}}...
+            </button>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!urlNorma || carregando">
+            <span *ngIf="!carregando">🚀 Extrair Obrigações</span>
+            <span *ngIf="carregando">
+              <i class="spinner"></i> Processando...
+            </span>
+          </button>
+          
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="limpar()"
+            [disabled]="carregando">
+            🔄 Limpar
+          </button>
+        </div>
+      </form>
+
+      <!-- Mensagens de Feedback -->
+      <div *ngIf="erro" class="alert alert-danger mt-3">
+        {{erro}}
+      </div>
+      
+      <div *ngIf="sucesso" class="alert alert-success mt-3">
+        {{sucesso}}
+      </div>
+
+      <!-- Etapa Atual do Processamento -->
+      <div *ngIf="processando && etapaAtual" class="processing-status">
+        <div class="loading-bar"></div>
+        <p class="processing-text">{{etapaAtual}}</p>
+        <small>Este processo pode levar de 10 a 30 segundos...</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado da Extração -->
+  <div *ngIf="resultado && !carregando" class="resultado-container">
+    <!-- Informações da Norma -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">📋 Informações da Norma</h2>
+        <button
+          *ngIf="!modoAprovacao"
+          class="btn btn-outline-primary btn-sm"
+          (click)="modoAprovacao = true; inicializarModoAprovacao(resultado)">
+          ✏️ Revisar e Aprovar
+        </button>
+        <button
+          *ngIf="modoAprovacao"
+          class="btn btn-outline-secondary btn-sm"
+          (click)="cancelarAprovacao()">
+          ❌ Cancelar
+        </button>
+      </div>
+      <div class="card-body">
+        <div *ngIf="!modoAprovacao" class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Norma:</span>
+            <span class="info-value">{{resultado.norma}}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Ementa:</span>
+            <span class="info-value">{{resultado.ementa}}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Data de Publicação:</span>
+            <span class="info-value">{{resultado.data_publicacao}}</span>
+          </div>
+        </div>
+
+        <!-- Formulário de Edição da Norma -->
+        <div *ngIf="modoAprovacao" class="norma-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nome da Norma *</label>
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="normaForm.nome"
+                placeholder="Nome da norma">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Número *</label>
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="normaForm.numero"
+                placeholder="Número da norma">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Data da Norma *</label>
+              <input
+                type="date"
+                class="form-input"
+                [(ngModel)]="normaForm.dataNorma">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data de Publicação</label>
+              <input
+                type="date"
+                class="form-input"
+                [(ngModel)]="normaForm.dataPublicacao">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Origem *</label>
+              <select
+                class="form-input"
+                [(ngModel)]="normaForm.origemId"
+                [disabled]="!!normaSalva">
+                <option [value]="undefined">-- Selecione uma origem --</option>
+                <option
+                  *ngFor="let origem of origens"
+                  [value]="origem.id">
+                  {{origem.nome}}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Situação</label>
+              <select
+                class="form-input"
+                [(ngModel)]="normaForm.situacaoId"
+                [disabled]="!!normaSalva">
+                <option
+                  *ngFor="let situacao of situacoesNorma"
+                  [value]="situacao.id">
+                  {{situacao.descricao}}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <textarea
+              class="form-input"
+              rows="3"
+              [(ngModel)]="normaForm.descricao"
+              placeholder="Descrição da norma"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-value">{{totalObrigacoes}}</div>
+        <div class="metric-label">Obrigações Extraídas</div>
+      </div>
+      <div class="metric-card status-conforme">
+        <div class="metric-value">{{obrigacoesComResponsavel}}</div>
+        <div class="metric-label">Com Responsável</div>
+      </div>
+      <div class="metric-card status-pendente">
+        <div class="metric-value">{{totalObrigacoes - obrigacoesComResponsavel}}</div>
+        <div class="metric-label">Sem Responsável</div>
+      </div>
+    </div>
+
+    <!-- Lista de Obrigações -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">📝 Obrigações Extraídas ({{resultado.obrigacoes.length}})</h2>
+        <div *ngIf="modoAprovacao" class="approval-progress">
+          <span class="progress-text">
+            {{obrigacoesAprovadas}} de {{obrigacoesEditaveis.length}} aprovadas
+          </span>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              [style.width.%]="progressoAprovacao">
+            </div>
+          </div>
+          <div *ngIf="!normaForm.origemId" class="alert alert-warning" style="margin-top: 1rem; font-size: 0.875rem;">
+            ⚠️ Selecione uma origem para a norma antes de aprovar obrigações
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="obrigacoes-list">
+          <div
+            *ngFor="let obrigacao of resultado.obrigacoes; let i = index"
+            class="obrigacao-item">
+            
+            <div class="obrigacao-header">
+              <div class="obrigacao-numero">{{i + 1}}</div>
+              <div class="obrigacao-titulo">
+                <h3>{{obrigacao.artigo_dispositivo_legal}}</h3>
+                <span class="badge" [ngClass]="getAreaBadgeClass(obrigacao.area_compliance)">
+                  {{obrigacao.area_compliance}}
+                </span>
+              </div>
+              <div class="obrigacao-actions">
+                <button
+                  class="btn btn-icon"
+                  (click)="verDetalhes(obrigacao)"
+                  title="Ver detalhes">
+                  👁️
+                </button>
+              </div>
+            </div>
+
+            <!-- Visualização Normal -->
+            <div *ngIf="!modoAprovacao" class="obrigacao-body">
+              <p class="obrigacao-requisito">
+                <strong>Requisito:</strong> {{obrigacao.obrigacao_requisito}}
+              </p>
+
+              <!-- Responsável Principal -->
+              <div *ngIf="obrigacao.unidades_responsaveis?.principal" class="responsavel-principal">
+                <strong>Responsável Principal:</strong>
+                <div class="unidade-badge principal">
+                  <span class="unidade-sigla">{{obrigacao.unidades_responsaveis.principal.sigla}}</span>
+                  <span class="unidade-nome">{{obrigacao.unidades_responsaveis.principal.nome}}</span>
+                </div>
+                <small class="justificativa">{{obrigacao.unidades_responsaveis.principal.justificativa}}</small>
+              </div>
+
+              <!-- Unidades de Apoio -->
+              <div *ngIf="obrigacao.unidades_responsaveis?.apoio && obrigacao.unidades_responsaveis.apoio.length > 0" 
+                   class="unidades-apoio">
+                <strong>Unidades de Apoio ({{obrigacao.unidades_responsaveis.apoio.length}}):</strong>
+                <div class="apoio-list">
+                  <div
+                    *ngFor="let apoio of obrigacao.unidades_responsaveis.apoio"
+                    class="unidade-badge apoio">
+                    <span class="unidade-sigla">{{apoio.sigla}}</span>
+                    <span class="unidade-nome">{{apoio.nome}}</span>
+                    <small>{{apoio.justificativa}}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulário de Edição -->
+            <div *ngIf="modoAprovacao && obrigacoesEditaveis[i]" class="obrigacao-edit-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Título *</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    [(ngModel)]="obrigacoesEditaveis[i].titulo"
+                    placeholder="Título da obrigação">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipo</label>
+                  <select
+                    class="form-input"
+                    [(ngModel)]="obrigacoesEditaveis[i].tipo">
+                    <option value="determinacao">Determinação</option>
+                    <option value="recomendacao">Recomendação</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Descrição *</label>
+                <textarea
+                  class="form-input"
+                  rows="2"
+                  [(ngModel)]="obrigacoesEditaveis[i].descricao"
+                  placeholder="Descrição detalhada da obrigação"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Prazo de Conformidade *</label>
+                  <input
+                    type="date"
+                    class="form-input"
+                    [(ngModel)]="obrigacoesEditaveis[i].prazoConformidade">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Recorrência</label>
+                  <select
+                    class="form-input"
+                    [(ngModel)]="obrigacoesEditaveis[i].recorrencia">
+                    <option value="unica">Única</option>
+                    <option value="mensal">Mensal</option>
+                    <option value="trimestral">Trimestral</option>
+                    <option value="semestral">Semestral</option>
+                    <option value="anual">Anual</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Prioridade</label>
+                  <select
+                    class="form-input"
+                    [(ngModel)]="obrigacoesEditaveis[i].prioridade">
+                    <option value="baixa">Baixa</option>
+                    <option value="media">Média</option>
+                    <option value="alta">Alta</option>
+                    <option value="critica">Crítica</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Seleção de Unidades Responsáveis Melhorada -->
+              <div class="form-group">
+                <label class="form-label">Unidades Responsáveis *</label>
+                <div class="unidades-selector">
+                  <div class="unidades-search">
+                    <input
+                      type="text"
+                      class="form-input search-input"
+                      placeholder="Buscar unidades..."
+                      [(ngModel)]="buscaUnidades"
+                      (input)="filtrarUnidades(buscaUnidades)">
+                  </div>
+                  <div class="unidades-list">
+                    <div 
+                      *ngFor="let unidade of filtrarUnidades(buscaUnidades)"
+                      class="unidade-item"
+                      [class.selected]="isUnidadeSelecionada(obrigacoesEditaveis[i], unidade.id)"
+                      (click)="unidade.id && toggleUnidadeResponsavel(obrigacoesEditaveis[i], unidade.id)">
+                      <div class="unidade-checkbox">
+                        <input
+                          type="checkbox"
+                          [checked]="isUnidadeSelecionada(obrigacoesEditaveis[i], unidade.id)"
+                          readonly>
+                      </div>
+                      <div class="unidade-info">
+                        <div class="unidade-header">
+                          <span class="unidade-sigla">{{unidade.sigla}}</span>
+                          <span class="unidade-nome">{{unidade.nome}}</span>
+                        </div>
+                        <div class="unidade-details">
+                          <small *ngIf="unidade.responsavel">{{unidade.responsavel}}</small>
+                          <small *ngIf="unidade.email"> • {{unidade.email}}</small>
+                        </div>
+                        <div *ngIf="unidade.descricao" class="unidade-descricao">
+                          <small>{{unidade.descricao}}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="unidades-selecionadas">
+                    <small>{{obrigacoesEditaveis[i].unidadesResponsaveis.length}} unidade(s) selecionada(s)</small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Observações</label>
+                <textarea
+                  class="form-input"
+                  rows="2"
+                  [(ngModel)]="obrigacoesEditaveis[i].observacoes"
+                  placeholder="Observações adicionais"></textarea>
+              </div>
+              
+              <!-- Botão de Aprovação Individual -->
+              <div class="form-actions">
+                <button
+                  class="btn btn-success btn-sm"
+                  [disabled]="obrigacoesEditaveis[i].salvando || obrigacoesEditaveis[i].aprovada"
+                  (click)="aprovarObrigacao(i)">
+                  <span *ngIf="!obrigacoesEditaveis[i].salvando && !obrigacoesEditaveis[i].aprovada">✅ Aprovar Obrigação</span>
+                  <span *ngIf="obrigacoesEditaveis[i].salvando">
+                    <i class="spinner"></i> Salvando...
+                  </span>
+                  <span *ngIf="obrigacoesEditaveis[i].aprovada">✅ Aprovada</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes -->
+  <div *ngIf="mostrarDetalhes && obrigacaoSelecionada" class="modal-overlay" (click)="fecharDetalhes()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{obrigacaoSelecionada.artigo_dispositivo_legal}}</h2>
+        <button class="btn-close" (click)="fecharDetalhes()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detalhes-item">
+          <strong>Requisito:</strong>
+          <p>{{obrigacaoSelecionada.obrigacao_requisito}}</p>
+        </div>
+
+        <div class="detalhes-item">
+          <strong>Texto Integral:</strong>
+          <p class="texto-integral">{{obrigacaoSelecionada.texto_integral}}</p>
+        </div>
+
+        <div class="detalhes-item">
+          <strong>Área de Compliance:</strong>
+          <span class="badge" [ngClass]="getAreaBadgeClass(obrigacaoSelecionada.area_compliance)">
+            {{obrigacaoSelecionada.area_compliance}}
+          </span>
+        </div>
+
+        <div *ngIf="obrigacaoSelecionada.unidades_responsaveis?.principal" class="detalhes-item">
+          <strong>Responsável Principal:</strong>
+          <div class="unidade-detalhe">
+            <h4>{{obrigacaoSelecionada.unidades_responsaveis.principal.sigla}} - {{obrigacaoSelecionada.unidades_responsaveis.principal.nome}}</h4>
+            <p>{{obrigacaoSelecionada.unidades_responsaveis.principal.justificativa}}</p>
+          </div>
+        </div>
+
+        <div *ngIf="obrigacaoSelecionada.unidades_responsaveis?.apoio && obrigacaoSelecionada.unidades_responsaveis.apoio.length > 0" 
+             class="detalhes-item">
+          <strong>Unidades de Apoio:</strong>
+          <div *ngFor="let apoio of obrigacaoSelecionada.unidades_responsaveis.apoio" class="unidade-detalhe">
+            <h4>{{apoio.sigla}} - {{apoio.nome}}</h4>
+            <p>{{apoio.justificativa}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="fecharDetalhes()">Fechar</button>
+        <button class="btn btn-primary" (click)="copiarObrigacao(obrigacaoSelecionada)">Copiar</button>
+      </div>
+    </div>
+  </div>
+</div>

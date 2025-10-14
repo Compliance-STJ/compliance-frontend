@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 interface Message {
   from: string;
@@ -11,7 +10,7 @@ interface Message {
 @Component({
   selector: 'app-pagina-inicial',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './pagina-inicial.component.html',
   styleUrls: ['./pagina-inicial.component.css']
 })

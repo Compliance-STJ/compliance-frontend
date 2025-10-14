@@ -1,0 +1,90 @@
+<div class="toast-demo-container">
+  <div class="demo-header">
+    <h2>🍞 Demonstração do Sistema de Toast</h2>
+    <p>Clique nos botões abaixo para testar diferentes tipos de notificações</p>
+  </div>
+
+  <div class="demo-grid">
+    <!-- Toasts básicos -->
+    <div class="demo-section">
+      <h3>Tipos Básicos</h3>
+      <div class="button-group">
+        <button class="btn btn-success" (click)="showSuccessToast()">
+          ✓ Sucesso
+        </button>
+        <button class="btn btn-error" (click)="showErrorToast()">
+          ✗ Erro
+        </button>
+        <button class="btn btn-warning" (click)="showWarningToast()">
+          ⚠ Aviso
+        </button>
+        <button class="btn btn-info" (click)="showInfoToast()">
+          ℹ Informação
+        </button>
+      </div>
+    </div>
+
+    <!-- Toasts com funcionalidades especiais -->
+    <div class="demo-section">
+      <h3>Funcionalidades Especiais</h3>
+      <div class="button-group">
+        <button class="btn btn-secondary" (click)="showToastWithAction()">
+          🔄 Com Ação
+        </button>
+        <button class="btn btn-primary" (click)="showSaveSuccess()">
+          💾 Salvar Sucesso
+        </button>
+        <button class="btn btn-secondary" (click)="showLoadError()">
+          📥 Erro de Carregamento
+        </button>
+        <button class="btn btn-secondary" (click)="showConnectionError()">
+          🌐 Erro de Conexão
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirmações -->
+    <div class="demo-section">
+      <h3>Confirmações Modernas</h3>
+      <div class="button-group">
+        <button class="btn btn-danger" (click)="showConfirmDelete()">
+          🗑️ Confirmar Exclusão
+        </button>
+        <button class="btn btn-success" (click)="showConfirmActivate()">
+          ✅ Confirmar Ativação
+        </button>
+        <button class="btn btn-warning" (click)="showConfirmDeactivate()">
+          ❌ Confirmar Desativação
+        </button>
+        <button class="btn btn-secondary" (click)="showCustomConfirm()">
+          ⚡ Confirmação Personalizada
+        </button>
+      </div>
+    </div>
+
+    <!-- Controles -->
+    <div class="demo-section">
+      <h3>Controles</h3>
+      <div class="button-group">
+        <button class="btn btn-danger" (click)="clearAllToasts()">
+          🗑️ Limpar Todos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-info">
+    <h4>Características do Sistema:</h4>
+    <ul>
+      <li>✨ Animações suaves de entrada e saída</li>
+      <li>🎨 4 tipos visuais: sucesso, erro, aviso e informação</li>
+      <li>⏱️ Auto-remoção configurável (5s padrão, 8s para erros)</li>
+      <li>🔄 Suporte a ações personalizadas</li>
+      <li>✅ Sistema de confirmação moderno (substitui alert/confirm)</li>
+      <li>📱 Totalmente responsivo</li>
+      <li>♿ Acessível (ARIA labels, navegação por teclado)</li>
+      <li>🌙 Suporte a modo escuro</li>
+      <li>🎯 Métodos de conveniência para operações comuns</li>
+    </ul>
+  </div>
+</div>

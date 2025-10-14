@@ -1,30 +1,26 @@
-<div class="container">
+<!-- Mostrar interface completa apenas quando autenticado -->
+<div *ngIf="isAuthenticated" class="container">
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="logo">
       <h1>⚖️ Compliance STJ</h1>
       <p class="subtitle">Sistema de Gestão de Conformidade</p>
     </div>
-    
+
     <div class="user-profile">
-      <select class="profile-selector" id="profileSelector" (change)="switchProfile()">
-        <option value="acr">ACR - Gestor</option>
-        <option value="responsavel">Responsável de Unidade</option>
-        <option value="usuario">Usuário de Unidade</option>
-        <option value="consultor">Consultor</option>
-      </select>
       <div class="user-info" id="userInfo">
-        <strong>{{currentUser.name}}</strong><br>
-        {{currentUser.unit}}<br>
-        <small>{{currentUser.access}}</small>
+        <strong>{{currentAuthUser?.user?.name}}</strong><br>
+        <span *ngIf="currentAuthUser?.user?.unit">{{currentAuthUser?.user?.unit}}</span><br>
+        <small>{{getUserTypeDescription()}}</small>
+        <button class="logout-btn" (click)="logout()">Sair</button>
       </div>
     </div>
-    
+
     <nav class="nav-menu" id="navMenu">
-      <div class="nav-section" *ngFor="let section of currentMenu">
+      <div class="nav-section" *ngFor="let section of getCurrentMenu()">
         <div class="nav-section-title">{{section.section}}</div>
-        <div 
-          class="nav-item" 
+        <div
+          class="nav-item"
           *ngFor="let item of section.items"
           [class.active]="currentSection === item.route"
           (click)="navigateToSection(item.route)"
@@ -41,3 +37,12 @@
     <router-outlet></router-outlet>
   </div>
 </div>
+
+<!-- Mostrar apenas router-outlet quando não autenticado (páginas de login, etc.) -->
+<div *ngIf="!isAuthenticated" class="login-container">
+  <router-outlet></router-outlet>
+</div>
+
+<!-- Toast container - sempre visível -->
+<app-toast-container></app-toast-container>
+

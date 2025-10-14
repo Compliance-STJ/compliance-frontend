@@ -1,0 +1,31 @@
+<div
+  *ngIf="isOpen"
+  class="dialog-overlay"
+  (click)="onBackdropClick()"
+  (keydown)="onKeyDown($event)"
+  tabindex="0">
+
+  <div
+    class="dialog-container"
+    [style.width]="width"
+    [style.height]="height"
+    (click)="onDialogClick($event)">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <h2 class="dialog-title">{{ title }}</h2>
+      <button
+        *ngIf="showCloseButton"
+        class="dialog-close-btn"
+        (click)="close()"
+        aria-label="Fechar dialog">
+        ✗
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="dialog-content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>
