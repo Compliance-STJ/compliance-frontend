@@ -51,6 +51,17 @@
               ],
               "outputHashing": "all"
             },
+            "ngrok": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.ngrok.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -61,9 +72,19 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [
+              "dadeec38b6f5.ngrok-free.app",
+              "localhost",
+              "127.0.0.1"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "compliance-stj:build:production"
+            },
+            "ngrok": {
+              "buildTarget": "compliance-stj:build:ngrok"
             },
             "development": {
               "buildTarget": "compliance-stj:build:development"
