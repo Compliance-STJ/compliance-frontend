@@ -1,0 +1,403 @@
+<div class="obrigacoes-usuario-container">
+  <div class="header">
+    <h2>Minhas Obrigações</h2>
+    <div class="filtros">
+      <select [(ngModel)]="filtroSituacao" (change)="carregarObrigacoes()" class="form-control">
+        <option value="">Todas as situações</option>
+        <option value="pendente">Pendente</option>
+        <option value="em_analise">Em Análise</option>
+        <option value="aguardando_evidencia">Aguardando Evidência</option>
+        <option value="conforme">Conforme</option>
+        <option value="nao_conforme">Não Conforme</option>
+        <option value="vencida">Vencida</option>
+      </select>
+
+      <select [(ngModel)]="filtroPrioridade" (change)="carregarObrigacoes()" class="form-control">
+        <option value="">Todas as prioridades</option>
+        <option value="critica">Crítica</option>
+        <option value="alta">Alta</option>
+        <option value="media">Média</option>
+        <option value="baixa">Baixa</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading">
+    <p>Carregando obrigações...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="erro" class="erro">
+    <p>{{ erro }}</p>
+    <button (click)="carregarObrigacoes()" class="btn btn-primary">Tentar novamente</button>
+  </div>
+
+  <!-- Obrigações Pendentes -->
+  <div *ngIf="!carregando && !erro" class="obrigacoes-section">
+    <h3>Obrigações Pendentes ({{ obrigacoesPendentes.length }})</h3>
+
+    <div *ngIf="obrigacoesPendentes.length === 0" class="empty-state">
+      <p>Não há obrigações pendentes.</p>
+    </div>
+
+    <div *ngFor="let responsavel of obrigacoesPendentes" class="obrigacao-card"
+         [ngClass]="[getClassePrioridade(obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade || 'baixa'), getClasseSituacao(responsavel.situacao)]">
+
+      <div class="obrigacao-header">
+        <h4>{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.titulo }}</h4>
+        <div class="badges">
+          <span class="badge prioridade" [ngClass]="getClassePrioridade(obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade || 'baixa')">
+            {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade | titlecase }}
+          </span>
+          <span class="badge situacao" [ngClass]="getClasseSituacao(responsavel.situacao)">
+            {{ responsavel.situacaoDescricao || getSituacaoDescricao(responsavel.situacao) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="obrigacao-info">
+        <p class="descricao">{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.descricao }}</p>
+        <p class="prazo">
+          <strong>Prazo:</strong> {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.prazoConformidade | date:'dd/MM/yyyy' }}
+        </p>
+        <p class="tipo">
+          <strong>Tipo:</strong> {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.tipo | titlecase }}
+        </p>
+      </div>
+
+      <div class="obrigacao-actions">
+        <button (click)="abrirDetalhes(responsavel)" class="btn btn-outline-primary btn-sm">
+          Ver Detalhes
+        </button>
+        <button (click)="abrirEvidencias(responsavel)" class="btn btn-outline-secondary btn-sm">
+          Evidências
+        </button>
+        <button (click)="abrirPlanos(responsavel)" class="btn btn-outline-secondary btn-sm">
+          Planos de Ação
+        </button>
+        <button (click)="abrirFormularioEvidencia(responsavel)" class="btn btn-success btn-sm">
+          + Evidência
+        </button>
+        <button (click)="abrirFormularioPlano(responsavel)" class="btn btn-warning btn-sm">
+          + Plano
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Obrigações Conformidade -->
+  <div *ngIf="!carregando && !erro" class="obrigacoes-section">
+    <h3>Obrigações Conformes ({{ obrigacoesConformes.length }})</h3>
+
+    <div *ngIf="obrigacoesConformes.length === 0" class="empty-state">
+      <p>Não há obrigações conformes.</p>
+    </div>
+
+    <div *ngFor="let responsavel of obrigacoesConformes" class="obrigacao-card conforme"
+         [ngClass]="getClasseSituacao(responsavel.situacao)">
+
+      <div class="obrigacao-header">
+        <h4>{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.titulo }}</h4>
+        <div class="badges">
+          <span class="badge situacao conforme">
+            {{ responsavel.situacaoDescricao || getSituacaoDescricao(responsavel.situacao) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="obrigacao-info">
+        <p class="descricao">{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.descricao }}</p>
+        <p class="prazo">
+          <strong>Prazo:</strong> {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.prazoConformidade | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+
+      <div class="obrigacao-actions">
+        <button (click)="abrirDetalhes(responsavel)" class="btn btn-outline-primary btn-sm">
+          Ver Detalhes
+        </button>
+        <button (click)="abrirEvidencias(responsavel)" class="btn btn-outline-secondary btn-sm">
+          Evidências
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalhes da Obrigação -->
+<div *ngIf="mostrarDetalhes" class="modal-overlay" (click)="fecharDetalhes()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Detalhes da Obrigação</h3>
+      <button (click)="fecharDetalhes()" class="close-btn">&times;</button>
+    </div>
+
+    <div *ngIf="obrigacaoSelecionada && responsavelSelecionado" class="modal-body">
+      <div class="detalhe-section">
+        <h4>{{ obrigacaoSelecionada.titulo }}</h4>
+        <p><strong>Descrição:</strong> {{ obrigacaoSelecionada.descricao }}</p>
+        <p><strong>Tipo:</strong> {{ obrigacaoSelecionada.tipo | titlecase }}</p>
+        <p><strong>Prazo:</strong> {{ obrigacaoSelecionada.prazoConformidade | date:'dd/MM/yyyy' }}</p>
+        <p><strong>Prioridade:</strong> {{ obrigacaoSelecionada.prioridade | titlecase }}</p>
+        <p><strong>Situação:</strong> {{ responsavelSelecionado.situacaoDescricao || getSituacaoDescricao(responsavelSelecionado.situacao) }}</p>
+        <p><strong>Unidade Responsável:</strong> {{ responsavelSelecionado.nomeUnidade }}</p>
+        <p *ngIf="responsavelSelecionado.dataCadastro">
+          <strong>Data de Atribuição:</strong> {{ formatarData(responsavelSelecionado.dataCadastro) }}
+        </p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="fecharDetalhes()" class="btn btn-secondary">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Evidências -->
+<div *ngIf="mostrarEvidencias" class="modal-overlay" (click)="fecharEvidencias()">
+  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Evidências - {{ responsavelSelecionado?.nomeUnidade }}</h3>
+      <button (click)="fecharEvidencias()" class="close-btn">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="responsavelSelecionado && evidencias[responsavelSelecionado.id!]?.length === 0" class="empty-state">
+        <p>Nenhuma evidência cadastrada.</p>
+      </div>
+
+      <div *ngFor="let evidencia of evidencias[responsavelSelecionado?.id!]" class="evidencia-item">
+        <div class="evidencia-header">
+          <h5>{{ evidencia.titulo }}</h5>
+          <span class="evidencia-tipo">{{ evidencia.tipo | titlecase }}</span>
+        </div>
+
+        <div class="evidencia-content">
+          <p *ngIf="evidencia.descricao"><strong>Descrição:</strong> {{ evidencia.descricao }}</p>
+
+          <div *ngIf="evidencia.tipo === 'texto' && evidencia.conteudoTexto" class="texto-content">
+            <strong>Conteúdo:</strong>
+            <div class="texto-box">{{ evidencia.conteudoTexto }}</div>
+          </div>
+
+          <div *ngIf="evidencia.tipo === 'arquivo' && evidencia.arquivoNome" class="arquivo-content">
+            <strong>Arquivo:</strong> {{ evidencia.arquivoNome }}
+            <span *ngIf="evidencia.arquivoTamanho">({{ evidencia.arquivoTamanho }} bytes)</span>
+          </div>
+
+          <div *ngIf="evidencia.tipo === 'link' && evidencia.linkUrl" class="link-content">
+            <strong>Link:</strong> <a [href]="evidencia.linkUrl" target="_blank">{{ evidencia.linkUrl }}</a>
+          </div>
+
+          <p class="evidencia-data">
+            <strong>Cadastrado em:</strong> {{ formatarData(evidencia.dataCadastro!) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="fecharEvidencias()" class="btn btn-secondary">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Planos de Ação -->
+<div *ngIf="mostrarPlanos" class="modal-overlay" (click)="fecharPlanos()">
+  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Planos de Ação - {{ responsavelSelecionado?.nomeUnidade }}</h3>
+      <button (click)="fecharPlanos()" class="close-btn">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="responsavelSelecionado && planos[responsavelSelecionado.id!]?.length === 0" class="empty-state">
+        <p>Nenhum plano de ação cadastrado.</p>
+      </div>
+
+      <div *ngFor="let plano of planos[responsavelSelecionado?.id!]" class="plano-item">
+        <div class="plano-header">
+          <h5>{{ plano.titulo }}</h5>
+          <span class="plano-status" [ngClass]="plano.status">{{ plano.status | titlecase }}</span>
+        </div>
+
+        <div class="plano-content">
+          <div class="plano-grid">
+            <div *ngIf="plano.whatOQue" class="plano-field">
+              <strong>O que:</strong> {{ plano.whatOQue }}
+            </div>
+            <div *ngIf="plano.whyPorQue" class="plano-field">
+              <strong>Por que:</strong> {{ plano.whyPorQue }}
+            </div>
+            <div *ngIf="plano.whereOnde" class="plano-field">
+              <strong>Onde:</strong> {{ plano.whereOnde }}
+            </div>
+            <div *ngIf="plano.whenQuando" class="plano-field">
+              <strong>Quando:</strong> {{ plano.whenQuando | date:'dd/MM/yyyy' }}
+            </div>
+            <div *ngIf="plano.whoQuem" class="plano-field">
+              <strong>Quem:</strong> {{ plano.whoQuem }}
+            </div>
+            <div *ngIf="plano.howComo" class="plano-field">
+              <strong>Como:</strong> {{ plano.howComo }}
+            </div>
+            <div *ngIf="plano.howMuchQuantoCusta" class="plano-field">
+              <strong>Custo:</strong> {{ plano.howMuchQuantoCusta }}
+            </div>
+          </div>
+
+          <div class="plano-datas" *ngIf="plano.dataInicio || plano.dataConclusao">
+            <p *ngIf="plano.dataInicio">
+              <strong>Início:</strong> {{ plano.dataInicio | date:'dd/MM/yyyy' }}
+            </p>
+            <p *ngIf="plano.dataConclusao">
+              <strong>Conclusão:</strong> {{ plano.dataConclusao | date:'dd/MM/yyyy' }}
+            </p>
+          </div>
+
+          <p class="plano-data">
+            <strong>Cadastrado em:</strong> {{ formatarData(plano.dataCadastro!) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="fecharPlanos()" class="btn btn-secondary">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Formulário de Evidência -->
+<div *ngIf="mostrarFormularioEvidencia" class="modal-overlay" (click)="fecharFormularioEvidencia()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Cadastrar Evidência</h3>
+      <button (click)="fecharFormularioEvidencia()" class="close-btn">&times;</button>
+    </div>
+
+    <form (ngSubmit)="salvarEvidencia()" class="modal-body">
+      <div class="form-group">
+        <label for="evidenciaTipo">Tipo de Evidência *</label>
+        <select id="evidenciaTipo" [(ngModel)]="evidenciaForm.tipo" name="tipo" class="form-control" required>
+          <option value="texto">Texto</option>
+          <option value="arquivo">Arquivo</option>
+          <option value="link">Link</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="evidenciaTitulo">Título *</label>
+        <input type="text" id="evidenciaTitulo" [(ngModel)]="evidenciaForm.titulo" name="titulo"
+               class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="evidenciaDescricao">Descrição</label>
+        <textarea id="evidenciaDescricao" [(ngModel)]="evidenciaForm.descricao" name="descricao"
+                  class="form-control" rows="3"></textarea>
+      </div>
+
+      <div *ngIf="evidenciaForm.tipo === 'texto'" class="form-group">
+        <label for="evidenciaConteudo">Conteúdo *</label>
+        <textarea id="evidenciaConteudo" [(ngModel)]="evidenciaForm.conteudoTexto" name="conteudoTexto"
+                  class="form-control" rows="5" required></textarea>
+      </div>
+
+      <div *ngIf="evidenciaForm.tipo === 'link'" class="form-group">
+        <label for="evidenciaLink">URL do Link *</label>
+        <input type="url" id="evidenciaLink" [(ngModel)]="evidenciaForm.linkUrl" name="linkUrl"
+               class="form-control" required>
+      </div>
+
+      <!-- TODO: Implementar upload de arquivo -->
+
+      <div class="modal-footer">
+        <button type="button" (click)="fecharFormularioEvidencia()" class="btn btn-secondary">Cancelar</button>
+        <button type="submit" class="btn btn-success">Salvar Evidência</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Formulário de Plano de Ação -->
+<div *ngIf="mostrarFormularioPlano" class="modal-overlay" (click)="fecharFormularioPlano()">
+  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Cadastrar Plano de Ação (5W2H)</h3>
+      <button (click)="fecharFormularioPlano()" class="close-btn">&times;</button>
+    </div>
+
+    <form (ngSubmit)="salvarPlano()" class="modal-body">
+      <div class="form-group">
+        <label for="planoTitulo">Título do Plano *</label>
+        <input type="text" id="planoTitulo" [(ngModel)]="planoForm.titulo" name="titulo"
+               class="form-control" required>
+      </div>
+
+      <div class="plano-form-grid">
+        <div class="form-group">
+          <label for="whatOQue">O QUE será feito? *</label>
+          <textarea id="whatOQue" [(ngModel)]="planoForm.whatOQue" name="whatOQue"
+                    class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="whyPorQue">POR QUE será feito? *</label>
+          <textarea id="whyPorQue" [(ngModel)]="planoForm.whyPorQue" name="whyPorQue"
+                    class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="whereOnde">ONDE será feito? *</label>
+          <textarea id="whereOnde" [(ngModel)]="planoForm.whereOnde" name="whereOnde"
+                    class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="whenQuando">QUANDO será feito? *</label>
+          <input type="date" id="whenQuando" [(ngModel)]="planoForm.whenQuando" name="whenQuando"
+                 class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="whoQuem">QUEM fará? *</label>
+          <textarea id="whoQuem" [(ngModel)]="planoForm.whoQuem" name="whoQuem"
+                    class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="howComo">COMO será feito? *</label>
+          <textarea id="howComo" [(ngModel)]="planoForm.howComo" name="howComo"
+                    class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="howMuchQuantoCusta">QUANTO custará?</label>
+          <textarea id="howMuchQuantoCusta" [(ngModel)]="planoForm.howMuchQuantoCusta" name="howMuchQuantoCusta"
+                    class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="dataInicio">Data de Início</label>
+          <input type="date" id="dataInicio" [(ngModel)]="planoForm.dataInicio" name="dataInicio"
+                 class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="dataConclusao">Data de Conclusão</label>
+          <input type="date" id="dataConclusao" [(ngModel)]="planoForm.dataConclusao" name="dataConclusao"
+                 class="form-control">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" (click)="fecharFormularioPlano()" class="btn btn-secondary">Cancelar</button>
+        <button type="submit" class="btn btn-warning">Salvar Plano</button>
+      </div>
+    </form>
+  </div>
+</div>

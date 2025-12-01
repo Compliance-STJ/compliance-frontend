@@ -1,0 +1,83 @@
+<div class="obrigacoes-unidade-container">
+  <div class="header">
+    <h2>Obrigações da Unidade</h2>
+    <div class="filtros">
+      <select [(ngModel)]="filtroSituacao" (change)="carregarObrigacoes()" class="form-control">
+        <option value="">Todas as situações</option>
+        <option value="pendente">Pendente</option>
+        <option value="em_analise">Em Análise</option>
+        <option value="aguardando_evidencia">Aguardando Evidência</option>
+        <option value="aguardando_aprovacao_unidade">Aguardando Aprovação Unidade</option>
+        <option value="conforme">Conforme</option>
+        <option value="nao_conforme">Não Conforme</option>
+        <option value="vencida">Vencida</option>
+      </select>
+
+      <select [(ngModel)]="filtroPrioridade" (change)="carregarObrigacoes()" class="form-control">
+        <option value="">Todas as prioridades</option>
+        <option value="critica">Crítica</option>
+        <option value="alta">Alta</option>
+        <option value="media">Média</option>
+        <option value="baixa">Baixa</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading">
+    <p>Carregando obrigações...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="erro" class="erro">
+    <p>{{ erro }}</p>
+    <button (click)="carregarObrigacoes()" class="btn btn-primary">Tentar novamente</button>
+  </div>
+
+  <!-- Lista de Obrigações -->
+  <div *ngIf="!carregando && !erro" class="obrigacoes-section">
+    <h3>Total: {{ obrigacoesFiltradas.length }} obrigação(ões)</h3>
+
+    <div *ngIf="obrigacoesFiltradas.length === 0" class="empty-state">
+      <p>Não há obrigações para sua unidade com os filtros selecionados.</p>
+    </div>
+
+    <div *ngFor="let responsavel of obrigacoesFiltradas" class="obrigacao-card"
+         [ngClass]="[getClassePrioridade(obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade || 'baixa'), getClasseSituacao(responsavel.situacao)]">
+
+      <div class="obrigacao-header">
+        <h4>{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.titulo }}</h4>
+        <div class="badges">
+          <span class="badge prioridade" [ngClass]="getClassePrioridade(obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade || 'baixa')">
+            {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.prioridade | titlecase }}
+          </span>
+          <span class="badge situacao" [ngClass]="getClasseSituacao(responsavel.situacao)">
+            {{ responsavel.situacaoDescricao || getSituacaoDescricao(responsavel.situacao) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="obrigacao-info">
+        <p class="descricao">{{ obrigacoesDetalhes[responsavel.obrigacaoId]?.descricao }}</p>
+        <p class="prazo">
+          <strong>Prazo:</strong> {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.prazoConformidade | date:'dd/MM/yyyy' }}
+        </p>
+        <p class="tipo">
+          <strong>Tipo:</strong> {{ obrigacoesDetalhes[responsavel.obrigacaoId]?.tipo | titlecase }}
+        </p>
+        <p class="evidencias" *ngIf="responsavel.quantidadeEvidencias !== undefined">
+          <strong>Evidências:</strong> {{ responsavel.quantidadeEvidencias }}
+        </p>
+        <p class="planos" *ngIf="responsavel.quantidadePlanos !== undefined">
+          <strong>Planos de Ação:</strong> {{ responsavel.quantidadePlanos }}
+        </p>
+      </div>
+
+      <div class="obrigacao-actions">
+        <button (click)="verDetalhes(responsavel.obrigacaoId)" class="btn btn-primary btn-sm">
+          Ver Detalhes Completos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

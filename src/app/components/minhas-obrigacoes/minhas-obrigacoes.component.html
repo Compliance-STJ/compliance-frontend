@@ -1,0 +1,321 @@
+<div class="minhas-obrigacoes-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>assignment</mat-icon>
+        Minhas Obrigações
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-tab-group>
+        <!-- Tab Pendentes -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">warning</mat-icon>
+            Pendentes
+            <span class="badge" *ngIf="obrigacoesPendentes.length > 0">
+              {{obrigacoesPendentes.length}}
+            </span>
+          </ng-template>
+
+          <div class="tab-content">
+            <p class="info-text" *ngIf="obrigacoesPendentes.length === 0 && !loading">
+              Nenhuma obrigação pendente.
+            </p>
+
+            <table mat-table [dataSource]="obrigacoesPendentes" *ngIf="obrigacoesPendentes.length > 0">
+              <!-- Coluna Título -->
+              <ng-container matColumnDef="titulo">
+                <th mat-header-cell *matHeaderCellDef>Obrigação</th>
+                <td mat-cell *matCellDef="let row">
+                  <div class="obrigacao-info">
+                    <strong>{{row.obrigacaoTitulo || 'Obrigação #' + row.obrigacaoId}}</strong>
+                    <small class="unidade-info" *ngIf="row.unidadeNome">
+                      {{row.unidadeNome}} ({{row.unidadeSigla}})
+                    </small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Coluna Situação -->
+              <ng-container matColumnDef="situacao">
+                <th mat-header-cell *matHeaderCellDef>Situação</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-chip [class]="getSituacaoClass(row.situacao)">
+                    {{getSituacaoLabel(row.situacao)}}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Coluna Prazo -->
+              <ng-container matColumnDef="prazo">
+                <th mat-header-cell *matHeaderCellDef>Cadastrada em</th>
+                <td mat-cell *matCellDef="let row">
+                  {{row.dataCadastro | date:'dd/MM/yyyy'}}
+                </td>
+              </ng-container>
+
+              <!-- Coluna Evidências -->
+              <ng-container matColumnDef="evidencias">
+                <th mat-header-cell *matHeaderCellDef>Evidências</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-icon [matBadge]="row.quantidadeEvidencias || 0"
+                            matBadgeColor="accent"
+                            matBadgeSize="small">
+                    description
+                  </mat-icon>
+                </td>
+              </ng-container>
+
+              <!-- Coluna Planos -->
+              <ng-container matColumnDef="planos">
+                <th mat-header-cell *matHeaderCellDef>Planos de Ação</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-icon [matBadge]="row.quantidadePlanos || 0"
+                            matBadgeColor="primary"
+                            matBadgeSize="small">
+                    assignment_turned_in
+                  </mat-icon>
+                </td>
+              </ng-container>
+
+              <!-- Coluna Ações -->
+              <ng-container matColumnDef="acoes">
+                <th mat-header-cell *matHeaderCellDef>Ações</th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-icon-button
+                          color="primary"
+                          (click)="adicionarEvidencia(row)"
+                          matTooltip="Adicionar Evidência">
+                    <mat-icon>add_circle</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          color="accent"
+                          (click)="adicionarPlanoAcao(row)"
+                          matTooltip="Adicionar Plano de Ação">
+                    <mat-icon>playlist_add</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          (click)="visualizarDetalhes(row)"
+                          matTooltip="Ver Detalhes">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </mat-tab>
+
+        <!-- Tab Todas -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">list</mat-icon>
+            Todas
+            <span class="badge" *ngIf="todasObrigacoes.length > 0">
+              {{todasObrigacoes.length}}
+            </span>
+          </ng-template>
+
+          <div class="tab-content">
+            <p class="info-text" *ngIf="todasObrigacoes.length === 0 && !loading">
+              Nenhuma obrigação encontrada.
+            </p>
+
+            <table mat-table [dataSource]="todasObrigacoes" *ngIf="todasObrigacoes.length > 0">
+              <ng-container matColumnDef="titulo">
+                <th mat-header-cell *matHeaderCellDef>Obrigação</th>
+                <td mat-cell *matCellDef="let row">
+                  <div class="obrigacao-info">
+                    <strong>{{row.obrigacaoTitulo || 'Obrigação #' + row.obrigacaoId}}</strong>
+                    <small class="unidade-info" *ngIf="row.unidadeNome">
+                      {{row.unidadeNome}} ({{row.unidadeSigla}})
+                    </small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="situacao">
+                <th mat-header-cell *matHeaderCellDef>Situação</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-chip [class]="getSituacaoClass(row.situacao)">
+                    {{getSituacaoLabel(row.situacao)}}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="prazo">
+                <th mat-header-cell *matHeaderCellDef>Cadastrada em</th>
+                <td mat-cell *matCellDef="let row">
+                  {{row.dataCadastro | date:'dd/MM/yyyy'}}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="evidencias">
+                <th mat-header-cell *matHeaderCellDef>Evidências</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-icon [matBadge]="row.quantidadeEvidencias || 0"
+                            matBadgeColor="accent"
+                            matBadgeSize="small">
+                    description
+                  </mat-icon>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="planos">
+                <th mat-header-cell *matHeaderCellDef>Planos de Ação</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-icon [matBadge]="row.quantidadePlanos || 0"
+                            matBadgeColor="primary"
+                            matBadgeSize="small">
+                    assignment_turned_in
+                  </mat-icon>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="acoes">
+                <th mat-header-cell *matHeaderCellDef>Ações</th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-icon-button
+                          color="primary"
+                          (click)="adicionarEvidencia(row)"
+                          matTooltip="Adicionar Evidência">
+                    <mat-icon>add_circle</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          color="accent"
+                          (click)="adicionarPlanoAcao(row)"
+                          matTooltip="Adicionar Plano de Ação">
+                    <mat-icon>playlist_add</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          (click)="visualizarDetalhes(row)"
+                          matTooltip="Ver Detalhes">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+
+<!-- Modal: Visualizar Detalhes -->
+<app-dialog
+  [isOpen]="mostrarModalDetalhes"
+  title="Detalhes da Obrigação"
+  [width]="'900px'"
+  (closed)="fecharModalDetalhes()">
+
+  <div class="detalhes-container" *ngIf="responsavelSelecionado">
+    <div class="detalhe-section">
+      <h4>Informações Gerais</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Obrigação:</span>
+        <span class="detalhe-value">{{responsavelSelecionado.obrigacaoTitulo}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Descrição:</span>
+        <span class="detalhe-value">{{responsavelSelecionado.obrigacaoDescricao}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Situação:</span>
+        <span class="detalhe-value">
+          <span class="badge" [ngClass]="getSituacaoClass(responsavelSelecionado.situacao)">
+            {{getSituacaoLabel(responsavelSelecionado.situacao)}}
+          </span>
+        </span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Prazo:</span>
+        <span class="detalhe-value">{{responsavelSelecionado.prazoConformidade | date:'dd/MM/yyyy'}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Data de Cadastro:</span>
+        <span class="detalhe-value">{{responsavelSelecionado.dataCadastro | date:'dd/MM/yyyy HH:mm'}}</span>
+      </div>
+    </div>
+
+    <div class="detalhe-section" *ngIf="responsavelSelecionado.evidencias && responsavelSelecionado.evidencias.length > 0">
+      <h4>Evidências Cadastradas ({{responsavelSelecionado.evidencias.length}})</h4>
+      <div *ngFor="let evidencia of responsavelSelecionado.evidencias" class="evidencia-item">
+        <div class="evidencia-header">
+          <h5>{{evidencia.titulo}}</h5>
+          <span class="evidencia-tipo badge">{{evidencia.tipo | titlecase}}</span>
+        </div>
+        <div class="evidencia-content">
+          <p *ngIf="evidencia.descricao"><strong>Descrição:</strong> {{evidencia.descricao}}</p>
+          <div *ngIf="evidencia.tipo === 'texto' && evidencia.conteudoTexto">
+            <strong>Conteúdo:</strong>
+            <div class="texto-box">{{evidencia.conteudoTexto}}</div>
+          </div>
+          <div *ngIf="evidencia.tipo === 'arquivo' && evidencia.arquivoNome">
+            <strong>Arquivo:</strong> {{evidencia.arquivoNome}}
+          </div>
+          <div *ngIf="evidencia.tipo === 'link' && evidencia.linkUrl">
+            <strong>Link:</strong> <a [href]="evidencia.linkUrl" target="_blank">{{evidencia.linkUrl}}</a>
+          </div>
+          <p class="evidencia-data">
+            <small>Cadastrado em {{evidencia.dataCadastro | date:'dd/MM/yyyy HH:mm'}} por {{evidencia.cadastradoPor}}</small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalhe-section" *ngIf="responsavelSelecionado.evidencias && responsavelSelecionado.evidencias.length === 0">
+      <h4>Evidências Cadastradas (0)</h4>
+      <p class="empty-message">Nenhuma evidência cadastrada ainda.</p>
+    </div>
+
+    <div class="detalhe-section" *ngIf="responsavelSelecionado.planosAcao && responsavelSelecionado.planosAcao.length > 0">
+      <h4>Planos de Ação ({{responsavelSelecionado.planosAcao.length}})</h4>
+      <div *ngFor="let plano of responsavelSelecionado.planosAcao" class="plano-item">
+        <div class="plano-header">
+          <h5>{{plano.titulo}}</h5>
+          <span class="plano-status badge">{{plano.status | titlecase}}</span>
+        </div>
+        <div class="plano-content">
+          <div class="plano-grid">
+            <div *ngIf="plano.whatOQue"><strong>O quê:</strong> <p>{{plano.whatOQue}}</p></div>
+            <div *ngIf="plano.whyPorQue"><strong>Por quê:</strong> <p>{{plano.whyPorQue}}</p></div>
+            <div *ngIf="plano.whereOnde"><strong>Onde:</strong> <p>{{plano.whereOnde}}</p></div>
+            <div *ngIf="plano.whenQuando"><strong>Quando:</strong> <p>{{plano.whenQuando}}</p></div>
+            <div *ngIf="plano.whoQuem"><strong>Quem:</strong> <p>{{plano.whoQuem}}</p></div>
+            <div *ngIf="plano.howComo"><strong>Como:</strong> <p>{{plano.howComo}}</p></div>
+            <div *ngIf="plano.howMuchQuantoCusta"><strong>Quanto custa:</strong> <p>{{plano.howMuchQuantoCusta}}</p></div>
+          </div>
+          <p class="plano-data">
+            <small>Cadastrado em {{plano.dataCadastro | date:'dd/MM/yyyy'}} por {{plano.cadastradoPor}}</small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalhe-section" *ngIf="responsavelSelecionado.planosAcao && responsavelSelecionado.planosAcao.length === 0">
+      <h4>Planos de Ação (0)</h4>
+      <p class="empty-message">Nenhum plano de ação cadastrado ainda.</p>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="fecharModalDetalhes()">
+        Fechar
+      </button>
+      <button class="btn btn-primary" (click)="fecharModalDetalhes(); adicionarEvidencia(responsavelSelecionado!)">
+        Adicionar Evidência
+      </button>
+      <button class="btn btn-success" (click)="fecharModalDetalhes(); adicionarPlanoAcao(responsavelSelecionado!)">
+        Adicionar Plano de Ação
+      </button>
+    </div>
+  </div>
+</app-dialog>

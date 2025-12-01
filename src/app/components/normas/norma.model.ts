@@ -16,6 +16,10 @@ export interface Norma {
   origemId?: number;
   origemNome?: string;
 
+  // Informações da obrigatoriedade
+  obrigatoriedadeId?: number;
+  obrigatoriedadeNome?: string;
+
   categoria?: string;
   orgaoEmissor?: string;
   link?: string;

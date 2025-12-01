@@ -1,0 +1,117 @@
+.minhas-obrigacoes-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+mat-card-header {
+  margin-bottom: 20px;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+}
+
+.tab-icon {
+  margin-right: 8px;
+}
+
+.badge {
+  background: #f44336;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.info-text {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  font-size: 16px;
+}
+
+table {
+  width: 100%;
+}
+
+.obrigacao-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.obrigacao-info strong {
+  font-size: 14px;
+}
+
+.unidade-info {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Situação chips */
+mat-chip {
+  font-size: 11px;
+  min-height: 24px;
+  padding: 4px 12px;
+}
+
+.situacao-pendente {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+.situacao-analise {
+  background-color: #2196f3 !important;
+  color: white !important;
+}
+
+.situacao-aguardando {
+  background-color: #9c27b0 !important;
+  color: white !important;
+}
+
+.situacao-conforme {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.situacao-nao-conforme {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.situacao-vencida {
+  background-color: #424242 !important;
+  color: white !important;
+}
+
+/* Badges */
+mat-icon[matBadge] {
+  position: relative;
+}
+
+/* Tabela responsiva */
+@media (max-width: 768px) {
+  .minhas-obrigacoes-container {
+    padding: 10px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  mat-card-title {
+    font-size: 20px;
+  }
+}

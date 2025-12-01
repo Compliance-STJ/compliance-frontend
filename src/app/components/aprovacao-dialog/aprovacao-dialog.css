@@ -1,0 +1,206 @@
+/* Dialog header */
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  font-size: 22px;
+  font-weight: 500;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+h2[mat-dialog-title] mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+/* Dialog content */
+mat-dialog-content {
+  padding: 20px 24px;
+  min-width: 800px;
+  max-width: 1100px;
+  border-radius: 12px;
+  background: white;
+  padding-bottom: 80px;
+}
+
+.evidencia-info {
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.evidencia-info h3 {
+  margin: 0 0 8px 0;
+  color: #1976d2;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.evidencia-info .titulo {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #212121;
+}
+
+.evidencia-info .descricao {
+  margin: 0;
+  font-size: 14px;
+  color: #757575;
+}
+
+/* Decis�o section */
+.decisao-section {
+  margin-bottom: 20px;
+}
+
+.decisao-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #424242;
+}
+
+/* Situação final section - apenas para ACR */
+.situacao-final-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+  border-radius: 4px;
+}
+
+.situacao-final-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #e65100;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-group mat-radio-button {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.radio-group mat-radio-button:hover {
+  border-color: #1976d2;
+  background-color: #f5f9fc;
+}
+
+.radio-group mat-radio-button.mat-mdc-radio-checked {
+  border-color: #1976d2;
+  background-color: #e3f2fd;
+}
+
+.status-icon {
+  margin-right: 8px;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.status-icon.aprovado {
+  color: #4caf50;
+}
+
+.status-icon.revisao {
+  color: #f44336;
+}
+
+/* Form field */
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* Mensagem informativa */
+.mensagem-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #e3f2fd;
+  border-left: 4px solid #1976d2;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.mensagem-info mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.mensagem-info mat-icon.aprovar {
+  color: #1976d2;
+}
+
+.mensagem-info mat-icon.revisar {
+  color: #f57c00;
+}
+
+.mensagem-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #424242;
+  line-height: 1.5;
+}
+
+/* Dialog actions */
+mat-dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  margin: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  background: white;
+  box-shadow: 0 -8px 16px rgba(0,0,0,0.04);
+}
+
+mat-dialog-actions button {
+  margin-left: 8px;
+}
+
+/* Primary button style */
+mat-dialog-actions button.mat-primary,
+mat-dialog-actions button.mat-raised-button.mat-primary,
+mat-dialog-actions button.mat-flat-button.mat-primary {
+  background: linear-gradient(90deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  border-radius: 24px;
+  padding: 10px 18px;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  mat-dialog-content {
+    min-width: unset;
+    padding: 16px;
+  }
+
+  h2[mat-dialog-title] {
+    padding: 16px;
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,70 @@
+<h2 mat-dialog-title>
+  <mat-icon>{{ data.isGestor ? 'how_to_reg' : 'verified' }}</mat-icon>
+  {{ tituloDialog }}
+</h2>
+
+<mat-dialog-content>
+  <div class="evidencia-info">
+    <h3>{{ data.tipo === 'evidencia' ? 'Evidência' : 'Plano de Ação' }}</h3>
+    <p class="titulo">{{ data.titulo }}</p>
+    <p class="descricao" *ngIf="data.descricao">{{ data.descricao }}</p>
+  </div>
+
+  <div class="decisao-section">
+    <h4>Decisão</h4>
+    <mat-radio-group [(ngModel)]="decisao" name="decisao" class="radio-group">
+      <mat-radio-button value="aprovar" color="primary">
+        <mat-icon class="status-icon aprovado">check_circle</mat-icon>
+        <span>Aprovar</span>
+      </mat-radio-button>
+      <mat-radio-button value="revisar" color="warn">
+        <mat-icon class="status-icon revisao">cancel</mat-icon>
+        <span>Solicitar Revisão</span>
+      </mat-radio-button>
+    </mat-radio-group>
+  </div>
+
+  <!-- Seção de situação final - apenas para ACR aprovando -->
+  <div class="situacao-final-section" *ngIf="!data.isGestor && decisao === 'aprovar'">
+    <h4>Situação Final da Obrigação</h4>
+    <mat-radio-group [(ngModel)]="situacaoFinal" name="situacaoFinal" class="radio-group vertical">
+      <mat-radio-button *ngFor="let situacao of situacoesFinais" [value]="situacao.codigo" color="primary">
+        <span>{{ situacao.descricao }}</span>
+      </mat-radio-button>
+    </mat-radio-group>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Observações {{ decisao === 'revisar' ? '(obrigatórias para revisão)' : '(opcional)' }}</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="observacoes"
+      name="observacoes"
+      placeholder="Adicione comentários sobre sua decisão"
+      rows="4"
+      [required]="decisao === 'revisar'"
+      maxlength="1000"></textarea>
+    <mat-hint align="end">{{ observacoes.length }}/1000</mat-hint>
+  </mat-form-field>
+
+  <div class="mensagem-info">
+    <mat-icon [class.aprovar]="decisao === 'aprovar'" [class.revisar]="decisao === 'revisar'">
+      {{ decisao === 'aprovar' ? 'info' : 'warning' }}
+    </mat-icon>
+    <p>{{ mensagemConfirmacao }}</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">
+    Cancelar
+  </button>
+  <button
+    mat-raised-button
+    [color]="decisao === 'aprovar' ? 'primary' : 'warn'"
+    (click)="confirmar()"
+    [disabled]="decisao === 'revisar' && !observacoes.trim()">
+    <mat-icon>{{ decisao === 'aprovar' ? 'check' : 'edit' }}</mat-icon>
+    {{ decisao === 'aprovar' ? 'Aprovar' : 'Solicitar Revisão' }}
+  </button>
+</mat-dialog-actions>

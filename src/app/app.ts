@@ -5,13 +5,14 @@ import { BackendStatusComponent } from './components/backend-status/backend-stat
 import { ToastComponent } from './components/toast/toast.component';
 import { ToastDemoComponent } from './components/toast-demo/toast-demo.component';
 import { UserHeaderComponent } from './components/user-header/user-header.component';
+import { HasPermissionDirective } from './directives/permission.directive';
 import { AuthService } from './services/auth.service';
 import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, BackendStatusComponent, ToastComponent, ToastDemoComponent, UserHeaderComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, BackendStatusComponent, ToastComponent, ToastDemoComponent, UserHeaderComponent, HasPermissionDirective],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

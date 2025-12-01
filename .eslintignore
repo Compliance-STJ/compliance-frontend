@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+.angular/
+*.spec.ts
+karma.conf.js

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, tap, catchError, throwError, map } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { User, UserRole, AuthUser, Permission, DEFAULT_PERMISSIONS } from '../models/user.model';
+import { User, UserRole, AuthUser, Permission, DEFAULT_PERMISSIONS, CreateUserRequest, UpdateUserRequest } from '../models/user.model';
 import { LoginRequest, LoginResponse, JwtPayload } from '../models/jwt.model';
 import { JwtService } from './jwt.service';
 import { ToastService } from './toast.service';
@@ -217,7 +217,7 @@ export class AuthService {
       name: response.user.nome,
       email: response.user.email,
       role: userRole,
-      unit: response.user.unidade || undefined,
+      unit: response.user.unidade ? Number(response.user.unidade) : undefined,
       isActive: response.user.ativo,
       createdAt: new Date(),
       lastLoginAt: response.user.dataUltimoLogin ? new Date(response.user.dataUltimoLogin) : new Date()
@@ -239,12 +239,138 @@ export class AuthService {
   private mapBackendTypeToUserRole(tipo: string): UserRole {
     switch (tipo) {
       case 'ACR': return UserRole.ACR;
-      case 'RESPONSAVEL': return UserRole.RESPONSAVEL;
+      case 'RESPONSAVEL': return UserRole.GESTOR_UNIDADE;
+      case 'GESTOR_UNIDADE': return UserRole.GESTOR_UNIDADE;
       case 'USUARIO': return UserRole.USUARIO;
-      case 'GESTOR': return UserRole.GESTOR;
-      case 'CONSULTOR': return UserRole.CONSULTOR;
       default: return UserRole.USUARIO;
     }
+  }
+
+  /**
+   * Mapeia UserRole do frontend para tipo do backend
+   */
+  private mapUserRoleToBackendType(role: UserRole): string {
+    switch (role) {
+      case UserRole.ACR: return 'ACR';
+      case UserRole.GESTOR_UNIDADE: return 'GESTOR_UNIDADE';
+      case UserRole.USUARIO: return 'USUARIO';
+      default: return 'USUARIO';
+    }
+  }
+
+  /**
+   * Mapeia usuário do backend para User do frontend
+   */
+  private mapBackendUserToFrontendUser(backendUser: any): User {
+    const userRole = this.mapBackendTypeToUserRole(backendUser.tipo);
+
+    // Função auxiliar para criar data válida
+    const createValidDate = (dateValue: any): Date => {
+      if (!dateValue) return new Date(); // Data atual como fallback
+
+      const date = new Date(dateValue);
+      // Verificar se a data é válida
+      return isNaN(date.getTime()) ? new Date() : date;
+    };
+
+    return {
+      id: backendUser.id.toString(),
+      name: backendUser.nome,
+      email: backendUser.email,
+      role: userRole,
+      unit: backendUser.unidade ? Number(backendUser.unidade) : undefined,
+      isActive: backendUser.ativo,
+      createdAt: createValidDate(backendUser.dataCriacao || backendUser.createdAt),
+      lastLoginAt: backendUser.dataUltimoLogin ? createValidDate(backendUser.dataUltimoLogin) : undefined
+    };
+  }
+
+  /**
+   * Listar todos os usuários
+   */
+  getUsers(): Observable<User[]> {
+    // Verificar se usuário está autenticado
+    if (!this.isAuthenticated()) {
+      console.warn('Tentativa de carregar usuários sem autenticação');
+      this.toastService.error('Erro de autenticação', 'Você precisa estar logado para acessar esta funcionalidade');
+      return throwError(() => new Error('Usuário não autenticado'));
+    }
+
+    return this.http.get<any>(`${this.API_URL}/usuarios`)
+      .pipe(
+        tap(response => {
+          console.log('Resposta da API de usuários:', response);
+        }),
+        map(response => {
+          // Extrair o array de usuários do campo 'content' da resposta paginada
+          const users = response.content || [];
+          return users.map((user: any) => this.mapBackendUserToFrontendUser(user));
+        }),
+        tap(users => {
+          console.log('Usuários mapeados:', users);
+        }),
+        catchError(error => {
+          console.error('Erro na API de usuários:', error);
+          const message = error?.error?.message || 'Erro ao carregar usuários';
+          this.toastService.error('Erro ao carregar usuários', message);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Criar novo usuário
+   */
+  createUser(userData: CreateUserRequest): Observable<User> {
+    // Mapear campos do frontend para o formato esperado pelo backend
+    const backendPayload = {
+      nome: userData.nome,
+      login: userData.login,
+      email: userData.email,
+      senha: userData.senha,
+      tipo: this.mapUserRoleToBackendType(userData.tipo),
+      unidade: userData.unidade,
+      ativo: userData.ativo
+    };
+
+    return this.http.post<User>(`${this.API_URL}/usuarios`, backendPayload)
+      .pipe(
+        tap(user => {
+          this.toastService.success('Usuário criado com sucesso!');
+        }),
+        catchError(error => {
+          const message = error?.error?.message || 'Erro ao criar usuário';
+          this.toastService.error('Erro ao criar usuário', message);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Atualizar usuário existente
+   */
+  updateUser(userId: string, userData: UpdateUserRequest): Observable<User> {
+    // Mapear campos do frontend para o formato esperado pelo backend
+    const backendPayload = {
+      nome: userData.nome,
+      login: userData.login,
+      email: userData.email,
+      tipo: this.mapUserRoleToBackendType(userData.tipo),
+      unidade: userData.unidade,
+      ativo: userData.ativo
+    };
+
+    return this.http.put<User>(`${this.API_URL}/usuarios/${userId}`, backendPayload)
+      .pipe(
+        tap(user => {
+          this.toastService.success('Usuário atualizado com sucesso!');
+        }),
+        catchError(error => {
+          const message = error?.error?.message || 'Erro ao atualizar usuário';
+          this.toastService.error('Erro ao atualizar usuário', message);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**

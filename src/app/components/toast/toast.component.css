@@ -24,6 +24,7 @@
   min-width: 450px;
   max-width: 600px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2);
+  pointer-events: auto !important;
 }
 
 /* Backdrop for confirmations */
@@ -34,9 +35,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgb(255, 255, 255);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: -1;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 /* Confirmation layout adjustments */

@@ -1,0 +1,152 @@
+<h2 mat-dialog-title>
+  <mat-icon>{{ isEditMode ? 'edit' : 'add_task' }}</mat-icon>
+  {{ isEditMode ? 'Editar Plano de Ação' : 'Novo Plano de Ação' }}
+</h2>
+
+<mat-dialog-content>
+  <div class="dialog-info">
+    <mat-icon>business</mat-icon>
+    <span><strong>Unidade:</strong> {{ data.unidadeNome }}</span>
+  </div>
+
+  <div *ngIf="erro" class="error-message">
+    <mat-icon>error</mat-icon>
+    {{ erro }}
+  </div>
+
+  <form class="plano-form">
+    <!-- Título -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Título do Plano de Ação</mat-label>
+      <input
+        matInput
+        [(ngModel)]="planoAcao.titulo"
+        name="titulo"
+        placeholder="Digite o título do plano de ação"
+        required
+        maxlength="500">
+      <mat-hint align="end">{{ planoAcao.titulo?.length || 0 }}/500</mat-hint>
+    </mat-form-field>
+
+    <!-- Metodologia 5W2H -->
+    <div class="metodologia-header">
+      <mat-icon>assignment</mat-icon>
+      <h3>Metodologia 5W2H</h3>
+    </div>
+
+    <!-- WHAT - O que fazer? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>What - O que fazer?</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="planoAcao.whatOQue"
+        name="whatOQue"
+        placeholder="Descreva detalhadamente a ação a ser realizada"
+        rows="3"
+        required
+        maxlength="1000"></textarea>
+      <mat-icon matPrefix class="field-icon">help_outline</mat-icon>
+      <mat-hint align="end">{{ planoAcao.whatOQue?.length || 0 }}/1000</mat-hint>
+    </mat-form-field>
+
+    <!-- WHY - Por que fazer? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Why - Por que fazer?</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="planoAcao.whyPorQue"
+        name="whyPorQue"
+        placeholder="Justifique a necessidade desta ação"
+        rows="3"
+        maxlength="1000"></textarea>
+      <mat-icon matPrefix class="field-icon">psychology</mat-icon>
+      <mat-hint align="end">{{ planoAcao.whyPorQue?.length || 0 }}/1000</mat-hint>
+    </mat-form-field>
+
+    <!-- WHERE - Onde será feito? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Where - Onde será feito?</mat-label>
+      <input
+        matInput
+        [(ngModel)]="planoAcao.whereOnde"
+        name="whereOnde"
+        placeholder="Informe o local ou setor onde a ação será realizada"
+        maxlength="500">
+      <mat-icon matPrefix class="field-icon">place</mat-icon>
+      <mat-hint align="end">{{ planoAcao.whereOnde?.length || 0 }}/500</mat-hint>
+    </mat-form-field>
+
+    <!-- WHEN - Quando será feito? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>When - Quando será feito?</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker"
+        [(ngModel)]="planoAcao.whenQuando"
+        name="whenQuando"
+        placeholder="Selecione a data prevista">
+      <mat-icon matPrefix class="field-icon">event</mat-icon>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <!-- WHO - Quem é o responsável? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Who - Quem é o responsável?</mat-label>
+      <input
+        matInput
+        [(ngModel)]="planoAcao.whoQuem"
+        name="whoQuem"
+        placeholder="Nome do responsável pela execução"
+        maxlength="500">
+      <mat-icon matPrefix class="field-icon">person</mat-icon>
+      <mat-hint align="end">{{ planoAcao.whoQuem?.length || 0 }}/500</mat-hint>
+    </mat-form-field>
+
+    <!-- HOW - Como será feito? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>How - Como será feito?</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="planoAcao.howComo"
+        name="howComo"
+        placeholder="Descreva o método ou procedimento a ser utilizado"
+        rows="4"
+        maxlength="2000"></textarea>
+      <mat-icon matPrefix class="field-icon">settings</mat-icon>
+      <mat-hint align="end">{{ planoAcao.howComo?.length || 0 }}/2000</mat-hint>
+    </mat-form-field>
+
+    <!-- HOW MUCH - Quanto custará? -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>How Much - Quanto custará?</mat-label>
+      <input
+        matInput
+        [(ngModel)]="planoAcao.howMuchQuantoCusta"
+        name="howMuchQuantoCusta"
+        placeholder="Estimativa de custo ou recursos necessários"
+        maxlength="500">
+      <mat-icon matPrefix class="field-icon">attach_money</mat-icon>
+      <mat-hint align="end">{{ planoAcao.howMuchQuantoCusta?.length || 0 }}/500</mat-hint>
+    </mat-form-field>
+  </form>
+
+  <div *ngIf="carregando" class="loading-overlay">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Salvando...</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()" [disabled]="carregando">
+    Cancelar
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="salvar()"
+    [disabled]="carregando">
+    <mat-icon>{{ isEditMode ? 'save' : 'add_task' }}</mat-icon>
+    {{ isEditMode ? 'Salvar' : 'Criar Plano' }}
+  </button>
+</mat-dialog-actions>

@@ -74,6 +74,22 @@
 
       <div class="form-grid">
         <div class="form-group">
+          <label class="form-label" for="obrigatoriedadeId">Obrigatoriedade</label>
+          <select
+            id="obrigatoriedadeId"
+            name="obrigatoriedadeId"
+            class="form-select"
+            [(ngModel)]="normaForm.obrigatoriedadeId">
+            <option [value]="null">Nenhuma</option>
+            <option *ngFor="let obrigatoriedade of obrigatoriedades" [value]="obrigatoriedade.id">
+              {{ obrigatoriedade.nome }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
           <label class="form-label" for="dataNorma">Data da Norma *</label>
           <input
             type="date"
@@ -261,6 +277,7 @@
             <th>Categoria</th>
             <th>Data da Norma</th>
             <th>Origem</th>
+            <th>Obrigatoriedade</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -281,6 +298,7 @@
             <td>{{ norma.categoria || '-' }}</td>
             <td>{{ formatarData(norma.dataNorma) }}</td>
             <td>{{ norma.origemNome || '-' }}</td>
+            <td>{{ norma.obrigatoriedadeNome || '-' }}</td>
             <td>
               <div class="action-buttons">
                 <button

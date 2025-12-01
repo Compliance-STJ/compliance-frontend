@@ -1,0 +1,376 @@
+.aprovacoes-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-card {
+  margin-bottom: 24px;
+}
+
+.header-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  color: #1976d2;
+}
+
+.header-card mat-card-subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+/* Error */
+.error-card {
+  margin: 24px 0;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.error-content mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* Content */
+.content-card {
+  min-height: 500px;
+}
+
+/* Tabs */
+.tab-icon {
+  margin-right: 8px;
+}
+
+.badge {
+  margin-left: 8px;
+  background-color: #f44336;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tab-content {
+  padding: 24px 0;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  color: #999;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: #bbb;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Evidências Grid */
+.evidencias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.evidencia-item {
+  border: 1px solid #e0e0e0;
+  transition: box-shadow 0.3s ease;
+}
+
+.evidencia-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.evidencia-item mat-card-avatar {
+  background-color: #1976d2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.evidencia-item .tipo-texto {
+  background-color: #4caf50;
+}
+
+.evidencia-item .tipo-arquivo {
+  background-color: #ff9800;
+}
+
+.evidencia-item .tipo-link {
+  background-color: #2196f3;
+}
+
+.evidencia-item .tipo-aprovado {
+  background-color: #2e7d32;
+}
+
+.evidencia-item mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.evidencia-item mat-card-subtitle {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.evidencia-item mat-card-content {
+  margin-top: 16px;
+}
+
+.evidencia-item mat-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Timeline Mini */
+.timeline-mini {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f5f9fc;
+  border-left: 3px solid #1976d2;
+  border-radius: 4px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item mat-icon {
+  color: #1976d2;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.timeline-item > div {
+  flex: 1;
+}
+
+.timeline-item strong {
+  display: block;
+  font-size: 13px;
+  color: #212121;
+  margin-bottom: 2px;
+}
+
+.timeline-item span {
+  display: block;
+  font-size: 12px;
+  color: #757575;
+}
+
+.timeline-item .observacoes {
+  margin-top: 4px;
+  padding: 8px;
+  background-color: #fff3e0;
+  border-left: 3px solid #f57c00;
+  font-size: 13px;
+  color: #424242;
+  font-style: italic;
+}
+
+/* Aprovação Info */
+.aprovacao-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+  color: #2e7d32;
+}
+
+.aprovacao-info mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.aprovacao-info span {
+  font-size: 13px;
+}
+
+/* Status Badges */
+.status-rascunho {
+  background-color: #e0e0e0 !important;
+  color: #424242 !important;
+}
+
+.status-analise {
+  background-color: #fff3e0 !important;
+  color: #e65100 !important;
+}
+
+.status-aprovado-parcial {
+  background-color: #e3f2fd !important;
+  color: #1565c0 !important;
+}
+
+.status-revisao {
+  background-color: #ffebee !important;
+  color: #c62828 !important;
+}
+
+.status-analise-acr {
+  background-color: #f3e5f5 !important;
+  color: #6a1b9a !important;
+}
+
+.status-aprovado-final {
+  background-color: #e8f5e9 !important;
+  color: #2e7d32 !important;
+}
+
+.status-aprovado-final mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.status-rejeitado {
+  background-color: #fce4ec !important;
+  color: #880e4f !important;
+}
+
+.status-default {
+  background-color: #fafafa !important;
+  color: #616161 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .aprovacoes-container {
+    padding: 16px;
+  }
+
+  .evidencias-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidencia-item mat-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .evidencia-item mat-card-actions button {
+    width: 100%;
+  }
+}
+
+/* Obrigação Stats */
+.obrigacao-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #e3f2fd;
+  border-radius: 6px;
+}
+
+.stat-item mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #1976d2;
+}
+
+.stat-item span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #424242;
+}
+
+.tipo-obrigacao {
+  background-color: #7b1fa2 !important;
+}
+
+/* Situação classes */
+.situacao-pendente {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.situacao-analise {
+  background-color: #cce5ff !important;
+  color: #004085 !important;
+}
+
+.situacao-aguardando {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+}
+
+.situacao-conforme {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.situacao-nao-conforme {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.situacao-vencida {
+  background-color: #e0e0e0 !important;
+  color: #333 !important;
+}

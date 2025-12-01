@@ -1,0 +1,210 @@
+<div class="main-content" *hasPermission="Resources.USUARIOS; actions: Actions.READ">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="page-title">Gestão de Usuários</h1>
+    <p class="page-subtitle">Cadastro e gerenciamento de usuários do sistema</p>
+  </div>
+
+  <!-- Card principal -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Lista de Usuários</h2>
+      <button
+        *hasPermission="Resources.USUARIOS; actions: Actions.CREATE"
+        class="btn btn-primary btn-create-user"
+        (click)="novoUsuario()"
+        [disabled]="carregando">
+        <i class="icon">👤</i>
+        <span class="btn-text">Novo Usuário</span>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="carregando" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    <div *ngIf="!carregando" class="data-table-container">
+      <div class="table-header">
+        <h3>👥 Lista de Usuários</h3>
+        <div class="table-info">
+          {{usuarios.length}} usuário(ns) encontrado(s)
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" *ngIf="usuarios.length > 0">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Papel</th>
+              <th>Unidade</th>
+              <th>Status</th>
+              <th>Criado em</th>
+              <th>Último Login</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of usuarios; trackBy: trackByUsuarioId">
+              <td>{{usuario.name}}</td>
+              <td>{{usuario.email}}</td>
+              <td>
+                <span class="badge badge-role">{{getRoleLabel(usuario.role)}}</span>
+              </td>
+              <td>{{getUnidadeNome(usuario.unit)}}</td>
+              <td>
+                <span class="badge" [ngClass]="usuario.isActive ? 'badge-success' : 'badge-danger'">
+                  {{usuario.isActive ? 'Ativo' : 'Inativo'}}
+                </span>
+              </td>
+              <td>{{isValidDate(usuario.createdAt) ? (usuario.createdAt | date:'dd/MM/yyyy') : '-'}}</td>
+              <td>{{isValidDate(usuario.lastLoginAt) ? (usuario.lastLoginAt | date:'dd/MM/yyyy HH:mm') : '-'}}</td>
+              <td>
+                <div class="action-buttons">
+                  <button
+                    class="btn-icon btn-edit"
+                    (click)="editarUsuario(usuario)"
+                    title="Editar"
+                    [hidden]="!hasPermission(Resources.USUARIOS, Actions.UPDATE)">
+                    ✏️
+                  </button>
+                  <button
+                    class="btn-icon btn-delete"
+                    (click)="excluirUsuario(usuario)"
+                    title="Excluir"
+                    [hidden]="!hasPermission(Resources.USUARIOS, Actions.DELETE)">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div *ngIf="usuarios.length === 0" class="empty-state">
+          <div class="empty-icon">👥</div>
+          <h3>Nenhum usuário encontrado</h3>
+          <p>Não há usuários cadastrados no sistema.</p>
+          <button
+            *hasPermission="Resources.USUARIOS; actions: Actions.CREATE"
+            class="btn btn-success"
+            (click)="novoUsuario()">
+            ➕ Cadastrar Primeiro Usuário
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mensagem quando não tem permissão -->
+<div class="main-content" *hasPermission="Resources.USUARIOS; actions: Actions.READ; else: noPermission">
+</div>
+<ng-template #noPermission>
+  <div class="main-content">
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <h3>Acesso Negado</h3>
+        <p>Você não tem permissão para visualizar usuários do sistema.</p>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Dialog de Cadastro/Edição -->
+<app-dialog
+  [isOpen]="mostrarFormulario"
+  [title]="modoEdicao ? 'Editar Usuário' : 'Novo Usuário'"
+  width="600px"
+  (closed)="fecharFormulario()">
+
+  <div class="form-container">
+    <div class="form-group">
+      <label for="nome">Nome Completo *</label>
+      <input
+        type="text"
+        id="nome"
+        [(ngModel)]="usuarioForm.nome"
+        placeholder="Digite o nome completo"
+        required>
+    </div>
+
+    <div class="form-group">
+      <label for="login">Login *</label>
+      <input
+        type="text"
+        id="login"
+        [(ngModel)]="usuarioForm.login"
+        placeholder="Digite o login ou email"
+        required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input
+        type="email"
+        id="email"
+        [(ngModel)]="usuarioForm.email"
+        placeholder="Digite o email"
+        required>
+    </div>
+
+    <div class="form-group">
+      <label for="tipo">Tipo de Usuário *</label>
+      <select id="tipo" [(ngModel)]="usuarioForm.tipo" required>
+        <option *ngFor="let role of roles" [value]="role.value">
+          {{role.label}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="unidade">Unidade</label>
+      <select id="unidade" [(ngModel)]="usuarioForm.unidade">
+        <option value="">Selecione uma unidade (opcional)</option>
+        <option *ngFor="let unidade of unidades" [value]="unidade.id">
+          {{unidade.nome}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group" *ngIf="!modoEdicao">
+      <label for="senha">Senha *</label>
+      <input
+        type="password"
+        id="senha"
+        [(ngModel)]="usuarioForm.senha"
+        placeholder="Digite a senha"
+        required>
+    </div>
+
+    <div class="form-group" *ngIf="!modoEdicao">
+      <label for="confirmarSenha">Confirmar Senha *</label>
+      <input
+        type="password"
+        id="confirmarSenha"
+        [(ngModel)]="usuarioForm.confirmarSenha"
+        placeholder="Confirme a senha"
+        required>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="fecharFormulario()" type="button">
+        <span>❌</span>
+        <span>Cancelar</span>
+      </button>
+      <button class="btn btn-primary" (click)="salvar()" [disabled]="carregando">
+        <span *ngIf="carregando">⏳</span>
+        <span *ngIf="!carregando">✅</span>
+        <span *ngIf="carregando">{{modoEdicao ? 'Atualizando...' : 'Criando...'}}</span>
+        <span *ngIf="!carregando">{{modoEdicao ? 'Atualizar Usuário' : 'Criar Usuário'}}</span>
+      </button>
+    </div>
+  </div>
+</app-dialog>

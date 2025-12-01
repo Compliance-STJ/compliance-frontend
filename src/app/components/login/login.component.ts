@@ -23,10 +23,8 @@ export class LoginComponent {
   // Usuários de exemplo para facilitar o teste
   mockUsers = [
     { email: 'acr', role: 'ACR - Administrador', description: 'Acesso total ao sistema' },
-    { email: 'gestor', role: 'Gestor', description: 'Gerencia compliance e relatórios' },
-    { email: 'responsavel', role: 'Responsável', description: 'Gerencia unidade específica' },
-    { email: 'usuario', role: 'Usuário', description: 'Acesso limitado às funcionalidades básicas' },
-    { email: 'consultor', role: 'Consultor', description: 'Acesso somente leitura' }
+    { email: 'gestor_unidade', role: 'Gestor Unidade', description: 'Gerencia unidade específica e aprova evidências' },
+    { email: 'usuario', role: 'Usuário', description: 'Acesso limitado às funcionalidades básicas' }
   ];
 
   constructor(

@@ -1,21 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
   import { NormaService } from '../normas/norma.service';
 import { UnidadeService } from '../unidades/unidade.service';
 import { ToastService } from '../../services/toast.service';
 import { DialogComponent } from '../dialog/dialog.component';
 import { HasPermissionDirective, HasRoleDirective } from '../../directives/permission.directive';
 import { Resources, Actions } from '../../models/user.model';
-import { 
-  Obrigacao, 
-  ObrigacaoForm, 
-  ObrigacaoFiltro, 
-  ObrigacaoEstatisticas 
+import {
+  Obrigacao,
+  ObrigacaoForm,
+  ObrigacaoFiltro,
+  ObrigacaoEstatisticas,
+  DesdobramentoRequest,
+  Evidencia,
+  PlanoAcao,
+  ObrigacaoResponsavel
 } from '../../models/obrigacao.model';
 import { Norma } from '../normas/norma.model';
 import { Unidade } from '../unidades/unidade.model';
 import { ObrigacaoService } from './obrigacao.service';
+import { ObrigacaoResponsavelService } from './obrigacao-responsavel.service';
 
 @Component({
   selector: 'app-obrigacoes',
@@ -49,6 +55,16 @@ export class ObrigacoesComponent implements OnInit {
   obrigacaoEditando: Obrigacao | null = null;
   mostrarDetalhes = false;
   obrigacaoDetalhes: Obrigacao | null = null;
+  mostrarDesdobramento = false;
+  obrigacaoDesdobramento: Obrigacao | null = null;
+  unidadesSelecionadasDesdobramento: number[] = [];
+  observacoesDesdobramento = '';
+  
+  // Propriedades para evidências
+  evidenciasObrigacao: Evidencia[] = [];
+  planosObrigacao: PlanoAcao[] = [];
+  mostrarDetalhesResponsavel = false;
+  responsavelDetalhes: ObrigacaoResponsavel | null = null;
   
   // Mensagens de feedback
   erro: string | null = null;
@@ -100,7 +116,9 @@ export class ObrigacoesComponent implements OnInit {
     private obrigacaoService: ObrigacaoService,
     private normaService: NormaService,
     private unidadeService: UnidadeService,
-    private toastService: ToastService
+    private obrigacaoResponsavelService: ObrigacaoResponsavelService,
+    private toastService: ToastService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -243,7 +261,7 @@ export class ObrigacoesComponent implements OnInit {
       titulo: obrigacao.titulo,
       descricao: obrigacao.descricao,
       tipo: obrigacao.tipo,
-      unidadesResponsaveis: [...obrigacao.unidadesResponsaveis],
+      unidadesResponsaveis: [...(obrigacao.unidadesResponsaveis || [])],
       prazoConformidade: obrigacao.prazoConformidade,
       recorrencia: obrigacao.recorrencia,
       obrigacoesAlteradas: obrigacao.obrigacoesAlteradas ? [...obrigacao.obrigacoesAlteradas] : [],
@@ -367,6 +385,9 @@ export class ObrigacoesComponent implements OnInit {
   }
 
   getNomesUnidades(unidadeIds: number[]): string {
+    if (!unidadeIds || !Array.isArray(unidadeIds) || unidadeIds.length === 0) {
+      return 'Nenhuma unidade responsável';
+    }
     const nomes = unidadeIds.map(id => this.getNomeUnidade(id));
     return nomes.join(', ');
   }
@@ -437,6 +458,51 @@ export class ObrigacoesComponent implements OnInit {
   verDetalhes(obrigacao: Obrigacao): void {
     this.obrigacaoDetalhes = obrigacao;
     this.mostrarDetalhes = true;
+    this.carregarEvidenciasObrigacao(obrigacao.id!);
+  }
+
+  /**
+   * Navega para a página de detalhamento completo ACR da obrigação
+   */
+  verDetalhamentoACR(obrigacao: Obrigacao): void {
+    this.router.navigate(['/obrigacoes', obrigacao.id, 'detalhamento']);
+  }
+
+  /**
+   * Carrega todas as evidências e planos de ação dos responsáveis da obrigação
+   */
+  carregarEvidenciasObrigacao(obrigacaoId: number): void {
+    if (!this.obrigacaoDetalhes?.responsaveis) {
+      this.evidenciasObrigacao = [];
+      this.planosObrigacao = [];
+      return;
+    }
+
+    // Carregar evidências de todos os responsáveis
+    const evidenciasPromises = this.obrigacaoDetalhes.responsaveis.map((responsavel: any) =>
+      this.obrigacaoResponsavelService.listarEvidenciasPorResponsavel(responsavel.id).toPromise()
+    );
+
+    // Carregar planos de ação de todos os responsáveis
+    const planosPromises = this.obrigacaoDetalhes.responsaveis.map((responsavel: any) =>
+      this.obrigacaoResponsavelService.listarPlanosPorResponsavel(responsavel.id).toPromise()
+    );
+
+    Promise.all(evidenciasPromises).then(evidenciasArrays => {
+      // Flatten all evidências arrays into one, filtering out undefined results
+      this.evidenciasObrigacao = evidenciasArrays.filter(arr => arr !== undefined).flat();
+    }).catch(error => {
+      console.error('Erro ao carregar evidências:', error);
+      this.evidenciasObrigacao = [];
+    });
+
+    Promise.all(planosPromises).then(planosArrays => {
+      // Flatten all planos arrays into one, filtering out undefined results
+      this.planosObrigacao = planosArrays.filter(arr => arr !== undefined).flat();
+    }).catch(error => {
+      console.error('Erro ao carregar planos de ação:', error);
+      this.planosObrigacao = [];
+    });
   }
 
   fecharDialog(): void {
@@ -470,13 +536,190 @@ export class ObrigacoesComponent implements OnInit {
     if (!this.obrigacaoForm.obrigacoesAlteradas) {
       this.obrigacaoForm.obrigacoesAlteradas = [];
     }
-    
+
     if (checkbox.checked) {
       if (!this.obrigacaoForm.obrigacoesAlteradas.includes(obrigacaoId)) {
         this.obrigacaoForm.obrigacoesAlteradas.push(obrigacaoId);
       }
     } else {
       this.obrigacaoForm.obrigacoesAlteradas = this.obrigacaoForm.obrigacoesAlteradas.filter(id => id !== obrigacaoId);
+    }
+  }
+
+  // Desdobramento de obrigações
+  abrirDialogDesdobramento(obrigacao: Obrigacao): void {
+    this.obrigacaoDesdobramento = obrigacao;
+    this.unidadesSelecionadasDesdobramento = [];
+    this.observacoesDesdobramento = '';
+    this.mostrarDesdobramento = true;
+  }
+
+  fecharDialogDesdobramento(): void {
+    this.mostrarDesdobramento = false;
+    this.obrigacaoDesdobramento = null;
+    this.unidadesSelecionadasDesdobramento = [];
+    this.observacoesDesdobramento = '';
+  }
+
+  isUnidadeSelecionadaDesdobramento(unidadeId: number): boolean {
+    return this.unidadesSelecionadasDesdobramento.includes(unidadeId);
+  }
+
+  toggleUnidadeDesdobramento(unidadeId: number, event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    if (checkbox.checked) {
+      if (!this.unidadesSelecionadasDesdobramento.includes(unidadeId)) {
+        this.unidadesSelecionadasDesdobramento.push(unidadeId);
+      }
+    } else {
+      this.unidadesSelecionadasDesdobramento = this.unidadesSelecionadasDesdobramento.filter(id => id !== unidadeId);
+    }
+  }
+
+  executarDesdobramento(): void {
+    if (!this.obrigacaoDesdobramento?.id) {
+      this.toastService.error('Obrigação inválida');
+      return;
+    }
+
+    if (this.unidadesSelecionadasDesdobramento.length === 0) {
+      this.toastService.warning('Selecione pelo menos uma unidade', 'É necessário selecionar ao menos uma unidade para desdobrar a obrigação.');
+      return;
+    }
+
+    this.carregando = true;
+    const request: DesdobramentoRequest = {
+      obrigacaoId: this.obrigacaoDesdobramento.id,
+      unidadesIds: this.unidadesSelecionadasDesdobramento,
+      observacoes: this.observacoesDesdobramento || undefined
+    };
+
+    this.obrigacaoService.desdobrarObrigacao(request).subscribe({
+      next: (response) => {
+        console.log('Obrigação desdobrada com sucesso:', response);
+        this.toastService.success(
+          'Desdobramento realizado com sucesso',
+          `Foram criadas ${response.totalDesdobradas} obrigações filhas.`
+        );
+        this.fecharDialogDesdobramento();
+        this.carregarObrigacoes();
+        this.carregarEstatisticas();
+        this.carregando = false;
+      },
+      error: (error) => {
+        console.error('Erro ao desdobrar obrigação:', error);
+        this.carregando = false;
+        const mensagem = error.error?.erro || error.error?.message || 'Verifique os dados e tente novamente.';
+        this.toastService.error('Erro ao desdobrar obrigação', mensagem);
+      }
+    });
+  }
+
+  verObrigacoesFilhas(obrigacao: Obrigacao): void {
+    if (!obrigacao.id) return;
+
+    this.obrigacaoService.buscarObrigacoesFilhas(obrigacao.id).subscribe({
+      next: (filhas) => {
+        console.log('Obrigações filhas:', filhas);
+        if (filhas.length === 0) {
+          this.toastService.info('Nenhuma obrigação filha', 'Esta obrigação ainda não possui obrigações filhas.');
+        } else {
+          // Aplicar filtro para mostrar apenas as obrigações filhas
+          this.filtros = { ...this.filtros };
+          this.currentPage = 0;
+          this.obrigacoes = filhas;
+          this.totalElements = filhas.length;
+          this.totalPages = 1;
+          this.toastService.info(
+            'Obrigações filhas',
+            `Mostrando ${filhas.length} obrigação(ões) filha(s). Limpe os filtros para ver todas as obrigações.`
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao buscar obrigações filhas:', error);
+        this.toastService.error('Erro ao buscar obrigações filhas');
+      }
+    });
+  }
+
+  /**
+   * Retorna a classe CSS baseada na situação do responsável
+   */
+  getClasseSituacao(situacao: string): string {
+    switch (situacao) {
+      case 'conforme': return 'responsavel-status conforme';
+      case 'nao_conforme': return 'responsavel-status nao-conforme';
+      case 'pendente': return 'responsavel-status pendente';
+      case 'em_analise': return 'responsavel-status em-analise';
+      default: return 'responsavel-status pendente';
+    }
+  }
+
+  /**
+   * Exibe os detalhes de um responsável específico
+   */
+  verDetalhesResponsavel(responsavel: ObrigacaoResponsavel): void {
+    if (!responsavel.id) {
+      console.error('Responsável sem ID');
+      return;
+    }
+
+    // Buscar dados completos do responsável incluindo evidências e planos
+    this.obrigacaoResponsavelService.buscarPorId(responsavel.id).subscribe({
+      next: (detalhes) => {
+        this.responsavelDetalhes = detalhes;
+        this.mostrarDetalhesResponsavel = true;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar detalhes do responsável:', error);
+        alert('Erro ao carregar detalhes do responsável. Tente novamente.');
+      }
+    });
+  }
+
+  /**
+   * Fecha o modal de detalhes do responsável
+   */
+  fecharDetalhesResponsavel(): void {
+    this.mostrarDetalhesResponsavel = false;
+    this.responsavelDetalhes = null;
+  }
+
+  /**
+   * Obtém o nome da unidade pelo ID do responsável
+   */
+  getNomeUnidadePorId(responsavelId: number): string {
+    if (!this.obrigacaoDetalhes?.responsaveis) return 'Unidade não encontrada';
+    
+    const responsavel = this.obrigacaoDetalhes.responsaveis.find((r: any) => r.id === responsavelId);
+    return responsavel?.nomeUnidade || 'Unidade não encontrada';
+  }
+
+  /**
+   * Obtém as evidências de um responsável específico
+   */
+  getEvidenciasResponsavel(responsavelId: number): Evidencia[] {
+    return this.evidenciasObrigacao.filter(e => e.obrigacaoResponsavelId === responsavelId);
+  }
+
+  /**
+   * Obtém os planos de ação de um responsável específico
+   */
+  getPlanosResponsavel(responsavelId: number): PlanoAcao[] {
+    return this.planosObrigacao.filter(p => p.obrigacaoResponsavelId === responsavelId);
+  }
+
+  /**
+   * Retorna a classe CSS para o status do plano de ação
+   */
+  getClasseStatusPlano(status: string | undefined): string {
+    switch (status) {
+      case 'planejado': return 'status-planejado';
+      case 'em_andamento': return 'status-andamento';
+      case 'concluido': return 'status-concluido';
+      case 'cancelado': return 'status-cancelado';
+      default: return 'status-desconhecido';
     }
   }
 

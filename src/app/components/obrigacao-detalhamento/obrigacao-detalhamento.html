@@ -1,0 +1,251 @@
+<div class="container">
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Carregando detalhamento...</p>
+  </div>
+
+  <!-- Erro -->
+  <mat-card *ngIf="erro && !carregando" class="error-card">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ erro }}</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="voltarParaLista()">
+        <mat-icon>arrow_back</mat-icon>
+        Voltar para Lista
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Conteúdo Principal -->
+  <div *ngIf="obrigacao && !carregando" class="content">
+
+    <!-- Cabeçalho com Botão Voltar -->
+    <div class="header-actions">
+      <button mat-raised-button (click)="voltarParaLista()">
+        <mat-icon>arrow_back</mat-icon>
+        Voltar
+      </button>
+    </div>
+
+    <!-- Card Principal da Obrigação -->
+    <mat-card class="obrigacao-card">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="title-section">
+            <h1>{{ obrigacao.titulo }}</h1>
+            <div class="badges">
+              <mat-chip [class]="obterClassePrioridade(obrigacao.prioridade)">
+                {{ obrigacao.prioridade?.toUpperCase() }}
+              </mat-chip>
+              <mat-chip [class]="obterClasseSituacao(obrigacao.situacao)">
+                <mat-icon>{{ obterIconeSituacao(obrigacao.situacao) }}</mat-icon>
+                {{ obterTextoSituacao(obrigacao.situacao) }}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Informações da Norma -->
+        <div class="info-section" *ngIf="obrigacao.normaNome">
+          <mat-icon>gavel</mat-icon>
+          <div class="info-content">
+            <strong>Norma:</strong>
+            <span>{{ obrigacao.normaNome }}
+              <span *ngIf="obrigacao.normaNumero">({{ obrigacao.normaNumero }})</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="info-section">
+          <mat-icon>description</mat-icon>
+          <div class="info-content">
+            <strong>Descrição:</strong>
+            <p>{{ obrigacao.descricao }}</p>
+          </div>
+        </div>
+
+        <!-- Detalhes em Grid -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <mat-icon>category</mat-icon>
+            <div>
+              <strong>Tipo</strong>
+              <span>{{ obterTextoTipo(obrigacao.tipo) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <mat-icon>event</mat-icon>
+            <div>
+              <strong>Prazo</strong>
+              <span>{{ formatarData(obrigacao.prazoConformidade) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <mat-icon>repeat</mat-icon>
+            <div>
+              <strong>Recorrência</strong>
+              <span>{{ obterTextoRecorrencia(obrigacao.recorrencia) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <mat-icon>people</mat-icon>
+            <div>
+              <strong>Responsáveis</strong>
+              <span>{{ obrigacao.responsaveis?.length || 0 }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Seção de Responsáveis -->
+    <mat-card class="responsaveis-card">
+      <mat-card-header>
+        <div class="responsaveis-title">
+          <mat-icon>groups</mat-icon>
+          <h2>Responsáveis pela Obrigação</h2>
+        </div>
+        <div class="responsaveis-summary">
+          <span class="summary-badge">
+            <mat-icon>business</mat-icon>
+            {{ obrigacao.responsaveis.length }} {{ obrigacao.responsaveis.length === 1 ? 'Unidade' : 'Unidades' }}
+          </span>
+          <span class="summary-badge success" *ngIf="obrigacao.estatisticas.responsaveisConformes > 0">
+            <mat-icon>check_circle</mat-icon>
+            {{ obrigacao.estatisticas.responsaveisConformes }} Aprovado{{ obrigacao.estatisticas.responsaveisConformes !== 1 ? 's' : '' }}
+          </span>
+          <span class="summary-badge warning" *ngIf="obrigacao.estatisticas.responsaveisPendentes > 0">
+            <mat-icon>schedule</mat-icon>
+            {{ obrigacao.estatisticas.responsaveisPendentes }} Pendente{{ obrigacao.estatisticas.responsaveisPendentes !== 1 ? 's' : '' }}
+          </span>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="responsaveis-controls">
+          <mat-form-field appearance="outline" class="filtro-responsaveis">
+            <mat-label>Filtrar responsáveis</mat-label>
+            <mat-select [(ngModel)]="filtroResponsaveis">
+              <mat-option value="todos">Todos</mat-option>
+              <mat-option value="pendentes">Pendentes</mat-option>
+              <mat-option value="conformes">Conformes</mat-option>
+              <mat-option value="analise">Em análise</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <div class="controls-buttons">
+            <button mat-stroked-button color="primary" (click)="expandirTodos()">
+              <mat-icon>unfold_more</mat-icon>
+              Expandir todos
+            </button>
+            <button mat-stroked-button (click)="recolherTodos()">
+              <mat-icon>unfold_less</mat-icon>
+              Recolher todos
+            </button>
+          </div>
+        </div>
+
+        <mat-accordion multi="true" class="responsaveis-accordion">
+          <mat-expansion-panel *ngFor="let responsavel of obrigacao?.responsaveis" class="responsavel-panel">
+            <mat-expansion-panel-header class="responsavel-expansion-header">
+              <div class="responsavel-header-wrapper">
+                <!-- Ícone e Nome da Unidade -->
+                <div class="responsavel-principal">
+                  <mat-icon class="icone-unidade">business</mat-icon>
+                  <div class="nome-status-grupo">
+                    <div class="nome-sigla">
+                      <strong class="nome-unidade">{{ responsavel.unidadeNome }}</strong>
+                      <span class="sigla-badge" *ngIf="responsavel.unidadeSigla">{{ responsavel.unidadeSigla }}</span>
+                    </div>
+                    <div class="contadores-linha">
+                      <span class="contador-item">
+                        <mat-icon>folder</mat-icon>
+                        {{ responsavel.totalEvidencias }} evidência(s)
+                      </span>
+                      <span class="separador">•</span>
+                      <span class="contador-item">
+                        <mat-icon>assignment</mat-icon>
+                        {{ responsavel.totalPlanosAcao }} plano(s)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status Chip -->
+                <mat-chip [class]="obterClasseSituacao(responsavel.situacao)" class="chip-status">
+                  <mat-icon>{{ obterIconeSituacao(responsavel.situacao) }}</mat-icon>
+                  {{ obterTextoSituacao(responsavel.situacao) }}
+                </mat-chip>
+              </div>
+            </mat-expansion-panel-header>
+
+            <!-- Detalhes do Responsável -->
+            <div class="responsavel-detalhes">
+              <!-- Seção de Evidências -->
+              <div class="evidencias-section" *ngIf="responsavel.evidencias && responsavel.evidencias.length > 0">
+                <h4>Evidências</h4>
+                <div class="evidencias-list">
+                  <mat-card *ngFor="let evidencia of responsavel.evidencias" class="evidencia-card">
+                    <mat-card-header>
+                      <mat-card-title>{{ evidencia.titulo }}</mat-card-title>
+                      <mat-card-subtitle>
+                        <mat-chip [class]="obterClasseStatusAprovacao(evidencia.statusAprovacao)">
+                          {{ obterTextoStatusAprovacao(evidencia.statusAprovacao) }}
+                        </mat-chip>
+                      </mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <p>{{ evidencia.descricao }}</p>
+                      <div class="evidencia-datas">
+                        <small>Criado em: {{ formatarData(evidencia.dataCadastro) }}</small>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+
+              <!-- Seção de Planos de Ação -->
+              <div class="planos-section" *ngIf="responsavel.planosAcao && responsavel.planosAcao.length > 0">
+                <h4>Planos de Ação</h4>
+                <div class="planos-list">
+                  <mat-card *ngFor="let plano of responsavel.planosAcao" class="plano-card">
+                    <mat-card-header>
+                      <mat-card-title>{{ plano.titulo }}</mat-card-title>
+                      <mat-card-subtitle>
+                        <mat-chip [class]="obterClasseStatusPlano(plano.status)">
+                          {{ obterTextoStatusPlano(plano.status) }}
+                        </mat-chip>
+                      </mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="plano-content">
+                        <p><strong>O que:</strong> {{ plano.whatOQue }}</p>
+                        <p><strong>Por que:</strong> {{ plano.whyPorQue }}</p>
+                        <p><strong>Onde:</strong> {{ plano.whereOnde }}</p>
+                        <p><strong>Quem:</strong> {{ plano.whoQuem }}</p>
+                        <p><strong>Como:</strong> {{ plano.howComo }}</p>
+                        <p *ngIf="plano.howMuchQuantoCusta"><strong>Custo:</strong> {{ plano.howMuchQuantoCusta }}</p>
+                      </div>
+                      <div class="plano-datas">
+                        <small>Criado em: {{ formatarData(plano.dataCadastro) }}</small>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

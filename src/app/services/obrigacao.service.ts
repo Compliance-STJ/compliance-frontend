@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { 
-  Obrigacao, 
-  ObrigacaoForm, 
-  ObrigacaoPage, 
-  ObrigacaoFiltro, 
-  ObrigacaoEstatisticas 
+import {
+  Obrigacao,
+  ObrigacaoForm,
+  ObrigacaoPage,
+  ObrigacaoFiltro,
+  ObrigacaoEstatisticas,
+  DesdobramentoRequest,
+  DesdobramentoResponse
 } from '../models/obrigacao.model';
 
 @Injectable({
@@ -108,5 +110,26 @@ export class ObrigacaoService {
    */
   listarObrigacoesRelacionadas(id: number): Observable<Obrigacao[]> {
     return this.http.get<Obrigacao[]>(`${this.apiUrl}/${id}/relacionadas`);
+  }
+
+  /**
+   * Desdobra uma obrigação em múltiplas obrigações filhas (uma por unidade)
+   */
+  desdobrarObrigacao(request: DesdobramentoRequest): Observable<DesdobramentoResponse> {
+    return this.http.post<DesdobramentoResponse>(`${this.apiUrl}/${request.obrigacaoId}/desdobrar`, request);
+  }
+
+  /**
+   * Lista obrigações filhas de uma obrigação pai
+   */
+  buscarObrigacoesFilhas(id: number): Observable<Obrigacao[]> {
+    return this.http.get<Obrigacao[]>(`${this.apiUrl}/${id}/filhas`);
+  }
+
+  /**
+   * Agrega o status das obrigações filhas para atualizar a obrigação pai
+   */
+  agregarStatusFilhas(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/agregar-status`, {});
   }
 }

@@ -5,8 +5,10 @@ import { NormaService } from './norma.service'
 import { Norma, NormaPage } from './norma.model'
 import { SituacaoNormaService } from '../SituacaoNorma/situacao-norma.service'
 import { OrigemService } from '../origem/origem.service'
+import { ObrigatoriedadeService } from '../obrigatoriedade/obrigatoriedade.service'
 import { SituacaoNorma } from '../SituacaoNorma/situacao-norma.model'
 import { Origem } from '../origem/origem.model'
+import { Obrigatoriedade } from '../obrigatoriedade/obrigatoriedade.model'
 import { DialogComponent } from '../dialog/dialog.component'
 import { ToastService } from '../../services/toast.service'
 
@@ -63,6 +65,7 @@ export class NormasComponent implements OnInit {
   normasData: Norma[] = []
   situacoes: SituacaoNorma[] = []
   origens: Origem[] = []
+  obrigatoriedades: Obrigatoriedade[] = []
 
   // Paginação
   totalElements = 0
@@ -223,12 +226,14 @@ export class NormasComponent implements OnInit {
     private normaService: NormaService,
     private situacaoNormaService: SituacaoNormaService,
     private origemService: OrigemService,
+    private obrigatoriedadeService: ObrigatoriedadeService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
     this.carregarSituacoes()
     this.carregarOrigens()
+    this.carregarObrigatoriedades()
     this.carregarNormas()
   }
 
@@ -259,6 +264,17 @@ export class NormasComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erro ao carregar origens:', error)
+      }
+    })
+  }
+
+  carregarObrigatoriedades(): void {
+    this.obrigatoriedadeService.listarAtivas().subscribe({
+      next: (obrigatoriedades) => {
+        this.obrigatoriedades = obrigatoriedades
+      },
+      error: (error) => {
+        console.error('Erro ao carregar obrigatoriedades:', error)
       }
     })
   }

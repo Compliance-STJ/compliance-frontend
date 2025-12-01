@@ -100,8 +100,8 @@
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: white;
+  background: var(--secondary);
+  color: var(--text-inverse);
 }
 
 .btn-danger {

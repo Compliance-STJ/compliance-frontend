@@ -3,46 +3,55 @@
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  background: var(--bg-primary);
+  min-height: 100vh;
 }
 
 /* Header */
 .header {
+  background: var(--bg-surface);
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius-lg);
   margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
 }
 
 .page-title {
   font-size: 2rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
 }
 
 .page-subtitle {
   font-size: 1rem;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
 /* Cards */
 .card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   margin-bottom: 1.5rem;
+  border: 1px solid var(--border-light);
 }
 
 .card-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--bg-primary);
 }
 
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -288,12 +297,12 @@
 }
 
 .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: var(--primary);
+  color: var(--text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--primary-hover);
 }
 
 .btn-success {
@@ -306,34 +315,34 @@
 }
 
 .btn-secondary {
-  background: #6b7280;
-  color: white;
+  background: var(--secondary);
+  color: var(--text-inverse);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #4b5563;
+  background: var(--secondary-dark);
 }
 
 .btn-outline-primary {
   background: transparent;
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
+  color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .btn-outline-primary:hover:not(:disabled) {
-  background: #3b82f6;
-  color: white;
+  background: var(--primary);
+  color: var(--text-inverse);
 }
 
 .btn-outline-secondary {
   background: transparent;
-  color: #6b7280;
-  border: 1px solid #6b7280;
+  color: var(--secondary);
+  border: 1px solid var(--secondary);
 }
 
 .btn-outline-secondary:hover:not(:disabled) {
-  background: #6b7280;
-  color: white;
+  background: var(--secondary);
+  color: var(--text-inverse);
 }
 
 .btn-sm {
@@ -415,41 +424,41 @@
 }
 
 .btn-primary {
-  background-color: #3b82f6;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: var(--primary-hover);
 }
 
 .btn-secondary {
-  background-color: #6b7280;
-  color: white;
+  background-color: var(--secondary);
+  color: var(--text-inverse);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #4b5563;
+  background-color: var(--secondary-dark);
 }
 
 .btn-outline-secondary {
-  background-color: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
+  background-color: var(--bg-surface);
+  color: var(--secondary);
+  border: 1px solid var(--border-light);
 }
 
 .btn-outline-secondary:hover:not(:disabled) {
-  background-color: #f3f4f6;
+  background-color: var(--bg-secondary);
 }
 
 .btn-outline-primary {
-  background-color: white;
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
+  background-color: var(--bg-surface);
+  color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .btn-outline-primary:hover:not(:disabled) {
-  background-color: #eff6ff;
+  background-color: var(--bg-secondary);
 }
 
 .btn-sm {

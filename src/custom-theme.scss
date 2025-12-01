@@ -1,0 +1,150 @@
+// Custom theme for Angular Material components
+@use '@angular/material' as mat;
+
+// Include the common styles for Angular Material
+@include mat.core();
+
+// Define a Material 3 theme
+$custom-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$blue-palette,
+    tertiary: mat.$red-palette,
+  ),
+  typography: (
+    brand-family: 'Roboto, sans-serif',
+    plain-family: 'Roboto, sans-serif',
+  ),
+  density: (
+    scale: 0,
+  )
+));
+
+// Include theme styles for core and each component
+@include mat.all-component-themes($custom-theme);
+
+// ========================================
+// CUSTOM IMPROVEMENTS FOR DROPDOWNS
+// ========================================
+
+// Improve mat-select dropdown appearance
+.mat-mdc-select-panel,
+.mat-select-panel {
+  background: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  margin-top: 8px !important;
+  max-height: 320px !important;
+  
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #a0a0a0;
+    }
+  }
+}
+
+// Improve options styling
+.mat-mdc-option,
+.mat-option {
+  background: white !important;
+  color: #333 !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  min-height: 48px !important;
+  transition: all 0.2s ease !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  
+  &:last-child {
+    border-bottom: none !important;
+  }
+  
+  // Hover state
+  &:hover {
+    background: #f5f5f5 !important;
+  }
+  
+  // Selected state
+  &.mdc-list-item--selected,
+  &.mat-selected {
+    background: #e3f2fd !important;
+    color: #1976d2 !important;
+    font-weight: 500 !important;
+    
+    &:hover {
+      background: #bbdefb !important;
+    }
+  }
+  
+  // Active/Focus state
+  &.mat-active {
+    background: #f5f5f5 !important;
+  }
+  
+  // Option text
+  .mat-option-text {
+    color: inherit !important;
+  }
+}
+
+// Improve form field appearance
+.mat-mdc-form-field {
+  width: 100%;
+  
+  &.mat-focused {
+    .mat-mdc-select-arrow,
+    .mat-select-arrow {
+      color: #1976d2 !important;
+    }
+  }
+}
+
+// Select arrow styling
+.mat-mdc-select-arrow,
+.mat-select-arrow {
+  color: #666 !important;
+  transition: color 0.2s ease !important;
+}
+
+// Overlay backdrop
+.cdk-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+// Dialog improvements
+.mat-mdc-dialog-container,
+.mat-dialog-container {
+  background: white !important;
+  border-radius: 12px !important;
+  
+  .mat-mdc-dialog-surface {
+    background: white !important;
+  }
+}
+
+// Ensure all form fields in dialogs are white
+.mat-mdc-dialog-container,
+.mat-dialog-container {
+  .mat-mdc-form-field,
+  .mat-form-field {
+    background: white !important;
+    
+    .mat-mdc-text-field-wrapper,
+    .mat-form-field-wrapper {
+      background: white !important;
+    }
+  }
+}

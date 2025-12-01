@@ -44,8 +44,8 @@
         </a>
       </div>
 
-      <!-- ACR e Responsáveis podem ver auditoria -->
-      <div *appHasRole="[UserRole.ACR, UserRole.RESPONSAVEL]">
+      <!-- ACR e Gestores Unidade podem ver auditoria -->
+      <div *appHasRole="[UserRole.ACR, UserRole.GESTOR_UNIDADE]">
         <a routerLink="/auditoria" class="menu-action">
           <i class="icon">📋</i>
           Auditoria

@@ -1,0 +1,623 @@
+<div class="norma-manual-container">
+  <div class="header-section">
+    <h1>📝 Criação Inteligente de Obrigações</h1>
+    <p>Analise normas automaticamente e crie obrigações de forma intuitiva</p>
+  </div>
+
+  <!-- Barra de progresso simplificada -->
+  <div class="progress-bar" *ngIf="normaEstruturada">
+    <div class="progress-step" [class.active]="normaEstruturada" [class.completed]="normaEstruturada">
+      <div class="step-number">1</div>
+      <div class="step-label">Analisar Norma</div>
+    </div>
+    <div class="progress-connector" [class.active]="normaEstruturada"></div>
+    <div class="progress-step" [class.active]="normaValidada" [class.completed]="normaValidada">
+      <div class="step-number">2</div>
+      <div class="step-label">Validar Dados</div>
+    </div>
+    <div class="progress-connector" [class.active]="normaValidada"></div>
+    <div class="progress-step" [class.active]="normaValidada" [class.completed]="obrigacoes.length > 0">
+      <div class="step-number">3</div>
+      <div class="step-label">Criar Obrigações ({{ obrigacoes.length }})</div>
+    </div>
+  </div>
+
+  <!-- Etapa 1: Análise da Norma -->
+  <div *ngIf="!normaEstruturada" class="step-section">
+    <div class="step-header">
+      <h2>🔍 1. Analisar Norma</h2>
+      <p>Cole o texto da norma ou forneça uma URL para análise automática</p>
+    </div>
+
+    <div class="input-section">
+      <div class="input-tabs">
+        <button [class.active]="activeTab === 'texto'" (click)="activeTab = 'texto'">
+          📄 Inserir Texto
+        </button>
+        <button [class.active]="activeTab === 'url'" (click)="activeTab = 'url'">
+          🌐 Inserir URL
+        </button>
+      </div>
+
+      <div class="input-content">
+        <!-- Aba de texto -->
+        <div *ngIf="activeTab === 'texto'" class="tab-content">
+          <textarea
+            [(ngModel)]="textoNorma"
+            placeholder="Cole aqui o texto completo da norma jurídica...
+
+Exemplo:
+Lei nº 12.345 de 15 de janeiro de 2020
+Conselho Nacional de Justiça
+
+Art. 1º As unidades devem implementar programas de compliance..."
+            rows="12"
+            class="norma-textarea">
+          </textarea>
+          <div class="action-buttons">
+            <button
+              (click)="analisarTexto()"
+              [disabled]="analisando || !textoNorma.trim()"
+              class="btn-primary">
+              <span *ngIf="analisando">🔍 Analisando...</span>
+              <span *ngIf="!analisando">🚀 Analisar Norma</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Aba de URL -->
+        <div *ngIf="activeTab === 'url'" class="tab-content">
+          <input
+            type="url"
+            [(ngModel)]="urlNorma"
+            placeholder="Ex: atos.cnj.jus.br/atos/detalhar/6344 ou https://atos.cnj.jus.br/atos/detalhar/6344"
+            class="url-input">
+          <small class="field-help">💡 Cole a URL completa ou apenas o endereço (adicionaremos https:// automaticamente)</small>
+          <div class="action-buttons">
+            <button
+              (click)="analisarUrl()"
+              [disabled]="analisando || !urlNorma.trim()"
+              class="btn-primary">
+              <span *ngIf="analisando">🌐 Analisando...</span>
+              <span *ngIf="!analisando">🚀 Analisar por URL</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 2: Validação dos Dados Extraídos -->
+  <div *ngIf="normaEstruturada && !normaValidada" class="step-section">
+    <div class="step-header">
+      <h2>✅ 2. Validar Dados Extraídos</h2>
+      <p>Confirme ou ajuste os dados extraídos automaticamente da norma</p>
+    </div>
+
+    <div class="validation-section">
+      <div class="norma-preview">
+        <h3>📋 Norma Identificada</h3>
+        <div class="norma-info-card">
+          <div class="norma-title">{{ normaNome || 'Título não identificado' }}</div>
+          <div class="extraction-status">
+            <div class="status-indicator" [class.extracted]="normaNome" [class.manual]="!normaNome">
+              <span class="status-icon">{{ normaNome ? '✅' : '⚠️' }}</span>
+              <span class="status-text">{{ normaNome ? 'Extraído automaticamente' : 'Preenchimento manual necessário' }}</span>
+            </div>
+          </div>
+          <div class="norma-details">
+            <div class="detail-item">
+              <span class="detail-label">Data:</span>
+              <span class="detail-value" [class.extracted]="normaDataNorma" [class.manual]="!normaDataNorma">
+                {{ normaDataNorma || 'Não identificada' }}
+              </span>
+              <span class="extraction-icon">{{ normaDataNorma ? '🤖' : '✏️' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Órgão:</span>
+              <span class="detail-value" [class.extracted]="normaOrgaoEmissor" [class.manual]="!normaOrgaoEmissor">
+                {{ normaOrgaoEmissor || 'Não identificado' }}
+              </span>
+              <span class="extraction-icon">{{ normaOrgaoEmissor ? '🤖' : '✏️' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Categoria:</span>
+              <span class="detail-value" [class.extracted]="normaCategoria" [class.manual]="!normaCategoria">
+                {{ normaCategoria || 'Não identificada' }}
+              </span>
+              <span class="extraction-icon">{{ normaCategoria ? '🤖' : '✏️' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="norma-form">
+        <h3>✏️ Ajustar Dados (se necessário)</h3>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Identificação *</label>
+            <input
+              type="text"
+              [(ngModel)]="normaNome"
+              placeholder="Ex: Lei nº 12.345 de 15 de outubro de 2023"
+              class="form-input">
+            <small class="field-help">Este campo deve conter o nome completo da norma incluindo a data</small>
+          </div>
+          <div class="form-group">
+            <label>Data da Norma *</label>
+            <input
+              type="date"
+              [(ngModel)]="normaDataNorma"
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Órgão Emissor</label>
+            <input
+              type="text"
+              [(ngModel)]="normaOrgaoEmissor"
+              placeholder="Ex: Conselho Nacional de Justiça"
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <input
+              type="text"
+              [(ngModel)]="normaCategoria"
+              placeholder="Ex: Compliance, Gestão"
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Origem</label>
+            <select [(ngModel)]="normaOrigemId" class="form-select">
+              <option [value]="undefined">Selecione...</option>
+              <option value="1">CNJ</option>
+              <option value="2">STJ</option>
+              <option value="3">Legislação Federal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Link da Norma</label>
+          <input
+            type="url"
+            [(ngModel)]="normaLink"
+            placeholder="https://..."
+            class="form-input">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Descrição</label>
+          <textarea
+            [(ngModel)]="normaDescricao"
+            placeholder="Breve descrição da norma..."
+            rows="2"
+            class="form-textarea">
+          </textarea>
+        </div>
+
+        <div class="validation-actions">
+          <button (click)="voltarParaAnalise()" class="btn-secondary">
+            ← Voltar para Análise
+          </button>
+          <button
+            (click)="confirmarNorma()"
+            [disabled]="!normaNome?.trim() || !normaDataNorma"
+            class="btn-primary">
+            ✅ Confirmar e Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 3: Criação de Obrigações -->
+  <div *ngIf="normaValidada" class="step-section">
+    <div class="step-header">
+      <h2>⚡ 3. Criar Obrigações</h2>
+      <p>Selecione partes da norma e crie obrigações de forma intuitiva</p>
+    </div>
+
+    <div class="creation-section">
+      <div class="norma-structure-panel">
+        <div class="panel-header">
+          <h3>📖 Estrutura da Norma</h3>
+          <div class="panel-controls">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="mostrarApenasSelecionadas">
+              Mostrar apenas selecionadas
+            </label>
+            <button
+              *ngIf="partesSelecionadas.length > 0"
+              (click)="limparSelecao()"
+              class="btn-secondary">
+              🗑️ Limpar Seleção
+            </button>
+          </div>
+        </div>
+
+        <div class="partes-tree">
+          <app-parte-norma-tree-item
+            *ngFor="let parte of getPartesExibidas()"
+            [parte]="parte"
+            (selecaoChange)="onSelecaoChange($event)">
+          </app-parte-norma-tree-item>
+        </div>
+      </div>
+
+      <div class="obligation-creation-panel">
+        <div class="panel-header">
+          <h3>✏️ Criar Obrigação</h3>
+          <div class="keyboard-shortcuts">
+            <span class="shortcut">💾 <kbd>Ctrl</kbd>+<kbd>Enter</kbd> Adicionar</span>
+            <span class="shortcut">🔄 <kbd>Ctrl</kbd>+<kbd>N</kbd> Nova</span>
+            <span class="shortcut">🚀 <kbd>Ctrl</kbd>+<kbd>S</kbd> Salvar Tudo</span>
+          </div>
+        </div>
+
+        <!-- Quando não há seleção -->
+        <div *ngIf="partesSelecionadas.length === 0" class="no-selection-message">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h4>Nenhuma parte selecionada</h4>
+            <p>Clique nas partes da norma à esquerda para selecionar o texto que será usado nesta obrigação.</p>
+          </div>
+        </div>
+
+        <!-- Formulário de criação -->
+        <div *ngIf="partesSelecionadas.length > 0" class="obligation-form">
+          <div class="form-group">
+            <label>Título da Obrigação *</label>
+            <input
+              type="text"
+              [(ngModel)]="tituloAtual"
+              placeholder="Ex: Implementar programa de compliance"
+              class="form-input"
+              autofocus>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo</label>
+              <select [(ngModel)]="tipoAtual" class="form-select">
+                <option value="determinacao">📋 Determinação</option>
+                <option value="recomendacao">💡 Recomendação</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Prioridade</label>
+              <select [(ngModel)]="prioridadeAtual" class="form-select">
+                <option value="baixa">🟢 Baixa</option>
+                <option value="media">🟡 Média</option>
+                <option value="alta">🟠 Alta</option>
+                <option value="critica">🔴 Crítica</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea
+              [(ngModel)]="descricaoAtual"
+              placeholder="Descrição detalhada da obrigação..."
+              rows="3"
+              class="form-textarea">
+            </textarea>
+          </div>
+
+          <!-- Seleção de unidades responsáveis -->
+          <div class="form-group">
+            <label>Unidades Responsáveis</label>
+            <div class="unidades-selector">
+              <!-- Unidades selecionadas -->
+              <div class="unidades-selecionadas" *ngIf="unidadesSelecionadas.length > 0">
+                <div class="unidade-tag" *ngFor="let unidade of unidadesSelecionadas">
+                  <span class="unidade-nome">{{ unidade.sigla }} - {{ unidade.nome }}</span>
+                  <button 
+                    (click)="removerUnidade(unidade)"
+                    class="btn-remover-unidade"
+                    title="Remover unidade">
+                    ×
+                  </button>
+                </div>
+              </div>
+
+              <!-- Seletor de unidades disponíveis -->
+              <div class="unidades-disponiveis">
+                <select 
+                  (change)="onUnidadeSelecionada($event)"
+                  class="form-select">
+                  <option value="" disabled selected>➕ Adicionar unidade responsável...</option>
+                  <option 
+                    *ngFor="let unidade of getUnidadesDisponiveis()" 
+                    [value]="unidade.id">
+                    {{ unidade.sigla }} - {{ unidade.nome }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview do texto compilado -->
+          <div class="text-preview" *ngIf="textoCompiladoAtual">
+            <div class="preview-header">
+              <span class="preview-label">📄 Texto Compilado:</span>
+              <button
+                (click)="togglePreviewExpandido()"
+                class="btn-toggle-preview">
+                {{ previewExpandido ? '🔽 Recolher' : '🔼 Expandir' }}
+              </button>
+            </div>
+            <div class="preview-content" [class.expanded]="previewExpandido">
+              <div class="texto-compilado">{{ textoCompiladoAtual }}</div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button (click)="cancelarObrigacaoAtual()" class="btn-secondary">
+              ❌ Cancelar
+            </button>
+            <button
+              (click)="adicionarObrigacao()"
+              [disabled]="!tituloAtual?.trim()"
+              class="btn-primary">
+              ➕ Adicionar Obrigação
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de obrigações criadas -->
+      <div class="obligations-list-panel" *ngIf="obrigacoes.length > 0">
+        <div class="panel-header">
+          <h3>📝 Obrigações Criadas ({{ obrigacoes.length }})</h3>
+        </div>
+
+        <div class="obligations-list">
+          <div *ngFor="let obrigacao of obrigacoes; let i = index" class="obligation-card">
+            <div class="obligation-header">
+              <div class="obligation-title-section">
+                <span class="obligation-number">#{{ i + 1 }}</span>
+                <h4 class="obligation-title">{{ obrigacao.titulo }}</h4>
+              </div>
+              <div class="obligation-badges">
+                <span [class]="'badge tipo-' + obrigacao.tipo">
+                  {{ obrigacao.tipo === 'determinacao' ? 'Determinação' : 'Recomendação' }}
+                </span>
+                <span [class]="'badge prioridade-' + obrigacao.prioridade">
+                  {{ getPrioridadeLabel(obrigacao.prioridade) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="obligation-content">
+              <p class="obligation-description" *ngIf="obrigacao.descricao">
+                {{ obrigacao.descricao }}
+              </p>
+              <div class="obligation-meta">
+                <span class="meta-item">{{ obrigacao.partesSelecionadas.length }} partes selecionadas</span>
+                <span class="meta-item">{{ obrigacao.textoCompilado.length }} caracteres</span>
+                <span class="meta-item" *ngIf="obrigacao.unidadesSelecionadas.length > 0">
+                  {{ obrigacao.unidadesSelecionadas.length }} unidade{{ obrigacao.unidadesSelecionadas.length > 1 ? 's' : '' }} responsável{{ obrigacao.unidadesSelecionadas.length > 1 ? 'is' : '' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="obligation-actions">
+              <button (click)="editarObrigacao(obrigacao)" class="btn-edit">
+                ✏️ Editar
+              </button>
+              <button (click)="removerObrigacao(obrigacao)" class="btn-remove">
+                🗑️ Remover
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações finais -->
+        <div class="final-actions">
+          <button (click)="voltarParaValidacao()" class="btn-secondary">
+            ← Voltar para Validação
+          </button>
+          <button
+            (click)="salvarTudo()"
+            [disabled]="obrigacoes.length === 0"
+            class="btn-primary-large">
+            🚀 Salvar Norma e Todas as Obrigações ({{ obrigacoes.length }})
+          </button>
+        <!-- Modal de confirmação de salvamento -->
+        <div *ngIf="mostrarConfirmacaoSalvar" class="modal-overlay" (click)="fecharConfirmacaoSalvar()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>🚀 Confirmar Salvamento</h3>
+              <button (click)="fecharConfirmacaoSalvar()" class="modal-close">&times;</button>
+            </div>
+
+            <div class="modal-body">
+              <div class="save-summary">
+                <div class="summary-item">
+                  <span class="summary-label">Norma:</span>
+                  <span class="summary-value">{{ normaNome }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Obrigações:</span>
+                  <span class="summary-value">{{ obrigacoes.length }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Total de partes:</span>
+                  <span class="summary-value">{{ getTotalPartesSelecionadas() }}</span>
+                </div>
+              </div>
+
+              <div class="obligations-preview">
+                <h4>Obrigações a serem criadas:</h4>
+                <div class="obligations-list-preview">
+                  <div *ngFor="let obrigacao of obrigacoes; let i = index" class="obligation-preview-item">
+                    <span class="obligation-number">#{{ i + 1 }}</span>
+                    <span class="obligation-title">{{ obrigacao.titulo }}</span>
+                    <span class="obligation-type" [class]="'tipo-' + obrigacao.tipo">
+                      {{ obrigacao.tipo === 'determinacao' ? 'DET' : 'REC' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button (click)="fecharConfirmacaoSalvar()" class="btn-secondary">
+                ← Voltar
+              </button>
+              <button (click)="confirmarSalvarTudo()" [disabled]="carregando" class="btn-primary">
+                <span *ngIf="carregando">⏳ Salvando...</span>
+                <span *ngIf="!carregando">✅ Confirmar e Salvar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h4>Insira uma Norma</h4>
+            <p>Cole o texto da norma jurídica ou forneça uma URL para análise automática.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h4>Selecione as Partes</h4>
+            <p>O sistema identifica artigos, parágrafos, incisos e alíneas. Marque apenas o que for relevante.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h4>Crie Obrigações</h4>
+            <p>Monte obrigações customizadas com o texto compilado automaticamente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h4>Seleção Precisa</h4>
+        <p>Escolha exatamente quais partes da norma usar para cada obrigação.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h4>Reordenação</h4>
+        <p>Arraste e solte para reorganizar as partes selecionadas.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h4>Múltiplas Obrigações</h4>
+        <p>Crie várias obrigações diferentes a partir da mesma norma.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h4>Análise Automática</h4>
+        <p>Identificação automática da estrutura jurídica da norma.</p>
+      </div>
+    </div>
+  </div>
+  <div class="input-section">
+  <div *ngIf="obrigacaoAtual" class="edicao-section">
+    <h2>3. Criar Obrigação</h2>
+
+    <div class="obrigacao-form">
+      <div class="form-row">
+        <label>Título da Obrigação:</label>
+        <input
+          type="text"
+          [(ngModel)]="obrigacaoAtual.titulo"
+          placeholder="Digite um título descritivo para a obrigação"
+          class="form-input">
+      </div>
+
+      <div class="form-row">
+        <label>Tipo:</label>
+        <select [(ngModel)]="obrigacaoAtual.tipo" class="form-select">
+          <option value="determinacao">Determinação</option>
+          <option value="recomendacao">Recomendação</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Descrição:</label>
+        <textarea
+          [(ngModel)]="obrigacaoAtual.descricao"
+          placeholder="Descreva a obrigação em detalhes"
+          rows="3"
+          class="form-textarea">
+        </textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Texto Compilado:</label>
+        <div class="texto-compilado">
+          {{ obrigacaoAtual.textoCompilado || 'Selecione partes da norma para gerar o texto...' }}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          (click)="salvarObrigacao()"
+          [disabled]="!obrigacaoAtual.titulo.trim()"
+          class="btn-primary">
+          💾 Salvar Obrigação
+        </button>
+        <button
+          (click)="cancelarObrigacao()"
+          class="btn-secondary">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seção de obrigações criadas -->
+  <div *ngIf="obrigacoes.length > 0" class="obrigacoes-section">
+    <h2>4. Obrigações Criadas ({{ obrigacoes.length }})</h2>
+
+    <div class="obrigacoes-lista">
+      <div *ngFor="let obrigacao of obrigacoes" class="obrigacao-card">
+        <div class="obrigacao-header">
+          <h3>{{ obrigacao.titulo }}</h3>
+          <span [class]="'tipo-badge tipo-' + obrigacao.tipo">
+            {{ obrigacao.tipo === 'determinacao' ? 'Determinação' : 'Recomendação' }}
+          </span>
+        </div>
+
+        <p *ngIf="obrigacao.descricao" class="obrigacao-descricao">
+          {{ obrigacao.descricao }}
+        </p>
+
+        <div class="obrigacao-texto">
+          <strong>Texto:</strong> {{ obrigacao.textoCompilado }}
+        </div>
+
+        <div class="obrigacao-partes">
+          <strong>Partes selecionadas:</strong> {{ obrigacao.partesSelecionadas.length }}
+        </div>
+
+        <div class="obrigacao-actions">
+          <button
+            (click)="removerObrigacao(obrigacao)"
+            class="btn-danger">
+            🗑️ Remover
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="acoes-finais">
+      <button class="btn-primary btn-large">
+        🚀 Salvar Todas as Obrigações
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,7 @@
 export enum UserRole {
   ACR = 'acr',
-  RESPONSAVEL = 'responsavel',
-  USUARIO = 'usuario',
-  GESTOR = 'gestor',
-  CONSULTOR = 'consultor'
+  GESTOR_UNIDADE = 'gestor_unidade',
+  USUARIO = 'usuario'
 }
 
 export interface User {
@@ -11,10 +9,30 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  unit?: string;
+  unit?: number;
   isActive: boolean;
   createdAt: Date;
   lastLoginAt?: Date;
+}
+
+export interface CreateUserRequest {
+  nome: string;
+  login: string;
+  email: string;
+  senha: string;
+  tipo: UserRole;
+  unidade?: number;
+  ativo: boolean;
+  confirmarSenha: string;
+}
+
+export interface UpdateUserRequest {
+  nome: string;
+  login: string;
+  email: string;
+  tipo: UserRole;
+  unidade?: number;
+  ativo: boolean;
 }
 
 export interface AuthUser {
@@ -68,20 +86,7 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: Resources.CONFIGURACOES, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
     { resource: Resources.AUDITORIA, actions: [Actions.READ, Actions.EXPORT] }
   ],
-  [UserRole.GESTOR]: [
-    { resource: Resources.NORMAS, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.OBRIGACOES, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE, Actions.APPROVE] },
-    { resource: Resources.ORIGENS, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.UNIDADES, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.OBRIGATORIEDADES, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.SITUACOES_NORMA, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.SITUACOES_OBRIGACAO, actions: [Actions.CREATE, Actions.READ, Actions.UPDATE, Actions.DELETE] },
-    { resource: Resources.USUARIOS, actions: [Actions.READ] },
-    { resource: Resources.DASHBOARD, actions: [Actions.READ, Actions.EXPORT] },
-    { resource: Resources.CONFIGURACOES, actions: [Actions.READ, Actions.UPDATE] },
-    { resource: Resources.AUDITORIA, actions: [Actions.READ, Actions.EXPORT] }
-  ],
-  [UserRole.RESPONSAVEL]: [
+  [UserRole.GESTOR_UNIDADE]: [
     { resource: Resources.NORMAS, actions: [Actions.READ] },
     { resource: Resources.OBRIGACOES, actions: [Actions.READ, Actions.UPDATE, Actions.APPROVE] },
     { resource: Resources.SITUACOES_OBRIGACAO, actions: [Actions.READ, Actions.UPDATE] },
@@ -91,10 +96,5 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: Resources.NORMAS, actions: [Actions.READ] },
     { resource: Resources.OBRIGACOES, actions: [Actions.READ, Actions.UPDATE] },
     { resource: Resources.SITUACOES_OBRIGACAO, actions: [Actions.READ] }
-  ],
-  [UserRole.CONSULTOR]: [
-    { resource: Resources.NORMAS, actions: [Actions.READ] },
-    { resource: Resources.OBRIGACOES, actions: [Actions.READ] },
-    { resource: Resources.DASHBOARD, actions: [Actions.READ] }
   ]
 };

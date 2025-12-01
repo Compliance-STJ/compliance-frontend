@@ -6,7 +6,7 @@
   </div>
 
   <!-- Estatísticas -->
-  <div *ngIf="estatisticas" class="metrics-grid">
+  <!-- <div *ngIf="estatisticas" class="metrics-grid">
     <div class="metric-card">
       <div class="metric-value">{{estatisticas.total}}</div>
       <div class="metric-label">Total de Obrigações</div>
@@ -31,7 +31,7 @@
       <div class="metric-value">{{estatisticas.vencidas}}</div>
       <div class="metric-label">Vencidas</div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Dialog para Formulário -->
   <app-dialog
@@ -331,7 +331,7 @@
           </td>
           <td>
             <div class="unidades-list">
-              {{getNomesUnidades(obrigacao.unidadesResponsaveis)}}
+              {{getNomesUnidades(obrigacao.unidadesResponsaveis || [])}}
             </div>
           </td>
           <td>
@@ -349,19 +349,39 @@
           </td>
           <td>
             <div class="action-buttons">
-              <button 
+              <button
                 class="btn-icon btn-info"
                 (click)="verDetalhes(obrigacao)"
                 title="Ver detalhes">
                 👁️
               </button>
-              <button 
+              <button
+                class="btn-icon btn-primary"
+                (click)="verDetalhamentoACR(obrigacao)"
+                title="Ver detalhamento completo (ACR)">
+                📋
+              </button>
+              <button
+                *ngIf="!obrigacao.desdobrada"
+                class="btn-icon btn-warning"
+                (click)="abrirDialogDesdobramento(obrigacao)"
+                title="Desdobrar por unidade">
+                🔀
+              </button>
+              <button
+                *ngIf="obrigacao.desdobrada"
+                class="btn-icon btn-success"
+                (click)="verObrigacoesFilhas(obrigacao)"
+                title="Ver obrigações filhas">
+                📂
+              </button>
+              <button
                 class="btn-icon btn-edit"
                 (click)="editarObrigacao(obrigacao)"
                 title="Editar">
                 ✏️
               </button>
-              <button 
+              <button
                 class="btn-icon btn-delete"
                 (click)="excluirObrigacao(obrigacao)"
                 title="Excluir">
@@ -407,11 +427,11 @@
 </div>
 
 <!-- Dialog de Cadastro/Edição -->
-<app-dialog 
-  *ngIf="mostrarFormulario"
+<app-dialog
+  [isOpen]="mostrarFormulario"
   [title]="obrigacaoEditando ? 'Editar Obrigação' : 'Nova Obrigação'"
   [width]="'900px'"
-  (onClose)="onDialogClosed()">
+  (closed)="onDialogClosed()">
   
   <div class="form-container">
     <div class="form-row">
@@ -537,12 +557,12 @@
 
 <!-- Dialog de Detalhes -->
 <app-dialog
-  *ngIf="mostrarDetalhes && obrigacaoDetalhes"
+  [isOpen]="mostrarDetalhes"
   title="Detalhes da Obrigação"
   [width]="'700px'"
-  (onClose)="fecharDialog()">
+  (closed)="fecharDialog()">
   
-  <div class="detalhes-container">
+  <div class="detalhes-container" *ngIf="obrigacaoDetalhes">
     <div class="detalhe-section">
       <h4>Informações Gerais</h4>
       <div class="detalhe-row">
@@ -567,7 +587,7 @@
       <h4>Responsabilidade e Prazos</h4>
       <div class="detalhe-row">
         <span class="detalhe-label">Unidades Responsáveis:</span>
-        <span class="detalhe-value">{{getNomesUnidades(obrigacaoDetalhes.unidadesResponsaveis)}}</span>
+        <span class="detalhe-value">{{getNomesUnidades(obrigacaoDetalhes?.unidadesResponsaveis || [])}}</span>
       </div>
       <div class="detalhe-row">
         <span class="detalhe-label">Prazo de Conformidade:</span>
@@ -603,6 +623,73 @@
       </div>
     </div>
 
+    <div class="detalhe-section" *ngIf="obrigacaoDetalhes.responsaveis && obrigacaoDetalhes.responsaveis.length > 0">
+      <h4>Responsáveis</h4>
+      <div class="responsaveis-list">
+        <div *ngFor="let responsavel of obrigacaoDetalhes.responsaveis" class="responsavel-item"
+             [ngClass]="getClasseSituacao(responsavel.situacao)">
+          <div class="responsavel-header">
+            <strong>{{ responsavel.nomeUnidade }}</strong>
+            <span class="badge situacao" [ngClass]="getClasseSituacao(responsavel.situacao)">
+              {{ responsavel.situacaoDescricao }}
+            </span>
+          </div>
+          <div class="responsavel-info">
+            <small *ngIf="responsavel.dataCadastro">
+              Atribuído em: {{ responsavel.dataCadastro | date:'dd/MM/yyyy' }}
+            </small>
+            <small *ngIf="responsavel.observacoes">
+              Observações: {{ responsavel.observacoes }}
+            </small>
+            <small *ngIf="responsavel.quantidadeEvidencias !== undefined">
+              Evidências: {{ responsavel.quantidadeEvidencias }}
+            </small>
+          </div>
+          <div class="responsavel-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="verDetalhesResponsavel(responsavel)">
+              Ver Detalhes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalhe-section" *ngIf="evidenciasObrigacao && evidenciasObrigacao.length > 0">
+      <h4>Evidências</h4>
+      <div class="evidencias-list">
+        <div *ngFor="let evidencia of evidenciasObrigacao" class="evidencia-item">
+          <div class="evidencia-header">
+            <h5>{{ evidencia.titulo }}</h5>
+            <span class="evidencia-tipo">{{ evidencia.tipo | titlecase }}</span>
+            <small class="evidencia-unidade">{{ getNomeUnidadePorId(evidencia.obrigacaoResponsavelId) }}</small>
+          </div>
+
+          <div class="evidencia-content">
+            <p *ngIf="evidencia.descricao"><strong>Descrição:</strong> {{ evidencia.descricao }}</p>
+
+            <div *ngIf="evidencia.tipo === 'texto' && evidencia.conteudoTexto" class="texto-content">
+              <strong>Conteúdo:</strong>
+              <div class="texto-box">{{ evidencia.conteudoTexto }}</div>
+            </div>
+
+            <div *ngIf="evidencia.tipo === 'arquivo' && evidencia.arquivoNome" class="arquivo-content">
+              <strong>Arquivo:</strong> {{ evidencia.arquivoNome }}
+              <span *ngIf="evidencia.arquivoTamanho">({{ evidencia.arquivoTamanho }} bytes)</span>
+            </div>
+
+            <div *ngIf="evidencia.tipo === 'link' && evidencia.linkUrl" class="link-content">
+              <strong>Link:</strong> <a [href]="evidencia.linkUrl" target="_blank">{{ evidencia.linkUrl }}</a>
+            </div>
+
+            <p class="evidencia-data">
+              <strong>Cadastrado em:</strong> {{ evidencia.dataCadastro | date:'dd/MM/yyyy HH:mm' }}
+              <span *ngIf="evidencia.cadastradoPor">por {{ evidencia.cadastradoPor }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="detalhe-section" *ngIf="obrigacaoDetalhes.obrigacoesAlteradas && obrigacaoDetalhes.obrigacoesAlteradas.length > 0">
       <h4>Obrigações Relacionadas</h4>
       <div class="detalhe-row">
@@ -619,8 +706,219 @@
       <button class="btn btn-secondary" (click)="fecharDialog()">
         Fechar
       </button>
-      <button class="btn btn-primary" (click)="editarObrigacao(obrigacaoDetalhes)">
+      <button class="btn btn-primary" (click)="editarObrigacao(obrigacaoDetalhes!)">
         ✏️ Editar
+      </button>
+    </div>
+  </div>
+</app-dialog>
+
+<!-- Dialog de Detalhes do Responsável -->
+<app-dialog
+  [isOpen]="mostrarDetalhesResponsavel"
+  title="Detalhes do Responsável"
+  [width]="'800px'"
+  (closed)="fecharDetalhesResponsavel()">
+  
+  <div class="detalhes-container" *ngIf="responsavelDetalhes">
+    <div class="detalhe-section">
+      <h4>Informações do Responsável</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Unidade:</span>
+        <span class="detalhe-value">{{ responsavelDetalhes.nomeUnidade }}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Situação da Obrigação:</span>
+        <span class="detalhe-value">
+          <span class="badge" [ngClass]="getClasseSituacao(responsavelDetalhes.situacao)">
+            {{ responsavelDetalhes.situacaoDescricao }}
+          </span>
+        </span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Data de Atribuição:</span>
+        <span class="detalhe-value">{{ responsavelDetalhes.dataCadastro | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="detalhe-row" *ngIf="responsavelDetalhes.observacoes">
+        <span class="detalhe-label">Observações:</span>
+        <span class="detalhe-value">{{ responsavelDetalhes.observacoes }}</span>
+      </div>
+    </div>
+
+    <div class="detalhe-section">
+      <h4>Evidências Cadastradas ({{ responsavelDetalhes?.evidencias?.length || 0 }})</h4>
+      <div *ngIf="!responsavelDetalhes?.evidencias || (responsavelDetalhes?.evidencias?.length || 0) === 0" class="empty-state">
+        <p>Nenhuma evidência cadastrada para este responsável.</p>
+      </div>
+      <div *ngFor="let evidencia of responsavelDetalhes?.evidencias" class="evidencia-item">
+        <div class="evidencia-header">
+          <h5>{{ evidencia.titulo }}</h5>
+          <div class="evidencia-meta">
+            <span class="evidencia-tipo badge badge-tipo">{{ evidencia.tipo | titlecase }}</span>
+            <span class="evidencia-data">Cadastrado em {{ evidencia.dataCadastro | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span *ngIf="evidencia.cadastradoPor" class="evidencia-autor">por {{ evidencia.cadastradoPor }}</span>
+          </div>
+        </div>
+
+        <div class="evidencia-content">
+          <p *ngIf="evidencia.descricao" class="evidencia-descricao">
+            <strong>Descrição:</strong> {{ evidencia.descricao }}
+          </p>
+
+          <div *ngIf="evidencia.tipo === 'texto' && evidencia.conteudoTexto" class="evidencia-detalhe">
+            <strong>Conteúdo do Texto:</strong>
+            <div class="texto-box">{{ evidencia.conteudoTexto }}</div>
+          </div>
+
+          <div *ngIf="evidencia.tipo === 'arquivo' && evidencia.arquivoNome" class="evidencia-detalhe">
+            <strong>Arquivo Anexado:</strong>
+            <div class="arquivo-info">
+              <span class="arquivo-nome">{{ evidencia.arquivoNome }}</span>
+              <span *ngIf="evidencia.arquivoTamanho" class="arquivo-tamanho">({{ evidencia.arquivoTamanho }} bytes)</span>
+            </div>
+          </div>
+
+          <div *ngIf="evidencia.tipo === 'link' && evidencia.linkUrl" class="evidencia-detalhe">
+            <strong>Link:</strong>
+            <a [href]="evidencia.linkUrl" target="_blank" class="link-evidencia">{{ evidencia.linkUrl }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalhe-section">
+      <h4>Planos de Ação ({{ responsavelDetalhes?.planosAcao?.length || 0 }})</h4>
+      <div *ngIf="!responsavelDetalhes?.planosAcao || (responsavelDetalhes?.planosAcao?.length || 0) === 0" class="empty-state">
+        <p>Nenhum plano de ação cadastrado para este responsável.</p>
+      </div>
+      <div *ngFor="let plano of responsavelDetalhes?.planosAcao" class="plano-item">
+        <div class="plano-header">
+          <h5>{{ plano.titulo }}</h5>
+          <div class="plano-meta">
+            <span class="plano-status badge" [ngClass]="getClasseStatusPlano(plano.status)">
+              {{ plano.status | titlecase }}
+            </span>
+            <span class="plano-data" *ngIf="plano.dataCadastro">Cadastrado em {{ plano.dataCadastro | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+
+        <div class="plano-content">
+          <div class="plano-grid">
+            <div *ngIf="plano.whatOQue" class="plano-field">
+              <strong>What (O quê):</strong>
+              <p>{{ plano.whatOQue }}</p>
+            </div>
+            <div *ngIf="plano.whyPorQue" class="plano-field">
+              <strong>Why (Por quê):</strong>
+              <p>{{ plano.whyPorQue }}</p>
+            </div>
+            <div *ngIf="plano.whereOnde" class="plano-field">
+              <strong>Where (Onde):</strong>
+              <p>{{ plano.whereOnde }}</p>
+            </div>
+            <div *ngIf="plano.whenQuando" class="plano-field">
+              <strong>When (Quando):</strong>
+              <p>{{ plano.whenQuando }}</p>
+            </div>
+            <div *ngIf="plano.whoQuem" class="plano-field">
+              <strong>Who (Quem):</strong>
+              <p>{{ plano.whoQuem }}</p>
+            </div>
+            <div *ngIf="plano.howComo" class="plano-field">
+              <strong>How (Como):</strong>
+              <p>{{ plano.howComo }}</p>
+            </div>
+            <div *ngIf="plano.howMuchQuantoCusta" class="plano-field">
+              <strong>How Much (Quanto custa):</strong>
+              <p>{{ plano.howMuchQuantoCusta }}</p>
+            </div>
+          </div>
+
+          <div class="plano-datas" *ngIf="plano.dataInicio || plano.dataConclusao">
+            <div *ngIf="plano.dataInicio" class="data-info">
+              <strong>Data de Início:</strong> {{ plano.dataInicio | date:'dd/MM/yyyy' }}
+            </div>
+            <div *ngIf="plano.dataConclusao" class="data-info">
+              <strong>Data de Conclusão:</strong> {{ plano.dataConclusao | date:'dd/MM/yyyy' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="fecharDetalhesResponsavel()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</app-dialog>
+
+<!-- Dialog de Desdobramento -->
+<app-dialog
+  [isOpen]="mostrarDesdobramento"
+  [title]="'Desdobrar Obrigação: ' + (obrigacaoDesdobramento?.titulo || '')"
+  width="700px"
+  (closed)="fecharDialogDesdobramento()">
+
+  <div class="form-container" *ngIf="obrigacaoDesdobramento">
+    <div class="detalhe-section">
+      <h4>Informações da Obrigação</h4>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Título:</span>
+        <span class="detalhe-value">{{obrigacaoDesdobramento.titulo}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Tipo:</span>
+        <span class="detalhe-value">{{getTipoLabel(obrigacaoDesdobramento.tipo)}}</span>
+      </div>
+      <div class="detalhe-row">
+        <span class="detalhe-label">Prioridade:</span>
+        <span class="detalhe-value badge" [ngClass]="getPrioridadeClass(obrigacaoDesdobramento.prioridade)">
+          {{getPrioridadeLabel(obrigacaoDesdobramento.prioridade)}}
+        </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <h4>Selecione as Unidades para Desdobramento</h4>
+      <p class="help-text">Selecione as unidades que receberão cópias desta obrigação. Será criada uma obrigação filha para cada unidade selecionada.</p>
+
+      <div class="checkbox-grid">
+        <div *ngFor="let unidade of unidades" class="checkbox-item">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="isUnidadeSelecionadaDesdobramento(unidade.id!)"
+              (change)="toggleUnidadeDesdobramento(unidade.id!, $event)">
+            <span>{{unidade.nome}}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observacoesDesdobramento">Observações (opcional)</label>
+      <textarea
+        id="observacoesDesdobramento"
+        class="form-textarea"
+        [(ngModel)]="observacoesDesdobramento"
+        rows="3"
+        placeholder="Adicione observações sobre este desdobramento..."
+        maxlength="1000"></textarea>
+      <small class="help-text">{{observacoesDesdobramento.length}}/1000 caracteres</small>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="fecharDialogDesdobramento()" [disabled]="carregando">
+        Cancelar
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="executarDesdobramento()"
+        [disabled]="carregando || unidadesSelecionadasDesdobramento.length === 0">
+        <span *ngIf="!carregando">🔀 Desdobrar ({{unidadesSelecionadasDesdobramento.length}} unidade{{unidadesSelecionadasDesdobramento.length !== 1 ? 's' : ''}})</span>
+        <span *ngIf="carregando">Processando...</span>
       </button>
     </div>
   </div>

@@ -21,4 +21,4 @@ EXPOSE 4200
 
 # Comando para iniciar o servidor de desenvolvimento
 # O '--host 0.0.0.0' é ESSENCIAL para que o servidor seja acessível de fora do container
-CMD ["ng", "serve", "--host", "0.0.0.0"]
+CMD ["ng", "serve", "--host", "0.0.0.0", "--proxy-config", "proxy.conf.json"]

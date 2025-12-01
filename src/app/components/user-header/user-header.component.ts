@@ -50,12 +50,10 @@ export class UserHeaderComponent implements OnInit, OnDestroy {
   }
   
   getRoleDisplayName(role: UserRole): string {
-    const roleNames = {
+    const roleNames: { [key: string]: string } = {
       [UserRole.ACR]: 'Administrador ACR',
-      [UserRole.GESTOR]: 'Gestor',
-      [UserRole.RESPONSAVEL]: 'Responsável',
-      [UserRole.USUARIO]: 'Usuário',
-      [UserRole.CONSULTOR]: 'Consultor'
+      [UserRole.GESTOR_UNIDADE]: 'Gestor Unidade',
+      [UserRole.USUARIO]: 'Usuário'
     };
     return roleNames[role] || role;
   }

@@ -1,0 +1,220 @@
+<div class="aprovacoes-container">
+  <!-- Header -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>verified_user</mat-icon>
+        Aprovações ACR
+      </mat-card-title>
+      <mat-card-subtitle>
+        Gerencie aprovações de evidências e planos de ação
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Carregando evidências pendentes...</p>
+  </div>
+
+  <!-- Error -->
+  <mat-card *ngIf="erro && !carregando" class="error-card" color="warn">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error</mat-icon>
+        <div>
+          <h3>Erro ao carregar dados</h3>
+          <p>{{ erro }}</p>
+        </div>
+      </div>
+      <button mat-raised-button color="primary" (click)="carregarEvidencias()">
+        <mat-icon>refresh</mat-icon>
+        Tentar Novamente
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Content -->
+  <mat-card *ngIf="!carregando && !erro" class="content-card">
+    <mat-tab-group>
+      <!-- Tab Obrigações Pendentes -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">assignment</mat-icon>
+          Obrigações Pendentes
+          <span class="badge" *ngIf="obrigacoesPendentes.length > 0" [matBadge]="obrigacoesPendentes.length" matBadgeColor="warn"></span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div *ngIf="obrigacoesPendentes.length === 0" class="empty-state">
+            <mat-icon>check_circle</mat-icon>
+            <h3>Nenhuma obrigação pendente</h3>
+            <p>Todas as obrigações foram processadas</p>
+          </div>
+
+          <div *ngIf="obrigacoesPendentes.length > 0" class="evidencias-grid">
+            <mat-card *ngFor="let obrigacao of obrigacoesPendentes" class="evidencia-item">
+              <mat-card-header>
+                <mat-icon mat-card-avatar class="tipo-obrigacao">assignment</mat-icon>
+                <mat-card-title>
+                  {{ obrigacao.obrigacaoTitulo }}
+                  <mat-chip [class]="getSituacaoClass(obrigacao.situacao)">
+                    {{ obrigacao.situacao }}
+                  </mat-chip>
+                </mat-card-title>
+                <mat-card-subtitle>
+                  <strong>Unidade:</strong> {{ obrigacao.unidadeNome }}
+                </mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="obrigacao-stats">
+                  <div class="stat-item">
+                    <mat-icon>description</mat-icon>
+                    <span>{{ obrigacao.quantidadeEvidencias || 0 }} evidência(s)</span>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>playlist_add_check</mat-icon>
+                    <span>{{ obrigacao.quantidadePlanos || 0 }} plano(s) de ação</span>
+                  </div>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-raised-button color="primary" (click)="visualizarObrigacaoResponsavel(obrigacao)">
+                  <mat-icon>visibility</mat-icon>
+                  Ver Detalhes
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab Evidências Pendentes -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">pending_actions</mat-icon>
+          Evidências Pendentes
+          <span class="badge" *ngIf="evidenciasPendentes.length > 0" [matBadge]="evidenciasPendentes.length" matBadgeColor="warn"></span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div *ngIf="evidenciasPendentes.length === 0" class="empty-state">
+            <mat-icon>check_circle</mat-icon>
+            <h3>Nenhuma evidência pendente</h3>
+            <p>Todas as evidências foram processadas</p>
+          </div>
+
+          <div *ngIf="evidenciasPendentes.length > 0" class="evidencias-grid">
+            <mat-card *ngFor="let item of evidenciasPendentes" class="evidencia-item">
+              <mat-card-header>
+                <mat-icon mat-card-avatar [class]="'tipo-' + item.evidencia.tipo">
+                  {{ obterIconeTipoEvidencia(item.evidencia.tipo) }}
+                </mat-icon>
+                <mat-card-title>
+                  {{ item.evidencia.titulo }}
+                  <mat-chip [class]="obterClasseStatusAprovacao(item.evidencia.statusAprovacao || '')">
+                    {{ obterTextoStatusAprovacao(item.evidencia.statusAprovacao || '') }}
+                  </mat-chip>
+                </mat-card-title>
+                <mat-card-subtitle>
+                  <strong>Obrigação:</strong> {{ item.obrigacaoTitulo }}
+                  <br>
+                  <strong>Unidade:</strong> {{ item.unidadeNome }}
+                </mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <p *ngIf="item.evidencia.descricao">{{ item.evidencia.descricao }}</p>
+
+                <!-- Timeline de aprovação -->
+                <div class="timeline-mini" *ngIf="item.evidencia.dataAprovacaoGestor">
+                  <div class="timeline-item">
+                    <mat-icon>how_to_reg</mat-icon>
+                    <div>
+                      <strong>Aprovado pelo Gestor</strong>
+                      <span>{{ formatarData(item.evidencia.dataAprovacaoGestor) }}</span>
+                      <span *ngIf="item.evidencia.aprovadoGestorPor"> - {{ item.evidencia.aprovadoGestorPor }}</span>
+                    </div>
+                  </div>
+                  <div class="timeline-item" *ngIf="item.evidencia.observacoesGestor">
+                    <mat-icon>comment</mat-icon>
+                    <div>
+                      <strong>Observações do Gestor:</strong>
+                      <p class="observacoes">{{ item.evidencia.observacoesGestor }}</p>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-button (click)="visualizarObrigacao(item.obrigacaoId)">
+                  <mat-icon>visibility</mat-icon>
+                  Ver Obrigação
+                </button>
+                <button mat-raised-button color="primary" (click)="aprovarEvidencia(item)">
+                  <mat-icon>verified</mat-icon>
+                  Analisar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab Aprovadas -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">check_circle</mat-icon>
+          Aprovadas
+          <span class="badge" *ngIf="evidenciasAprovadas.length > 0">{{ evidenciasAprovadas.length }}</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div *ngIf="evidenciasAprovadas.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>Nenhuma evidência aprovada ainda</h3>
+            <p>As evidências aprovadas aparecerão aqui</p>
+          </div>
+
+          <div *ngIf="evidenciasAprovadas.length > 0" class="evidencias-grid">
+            <mat-card *ngFor="let item of evidenciasAprovadas" class="evidencia-item">
+              <mat-card-header>
+                <mat-icon mat-card-avatar class="tipo-aprovado">check_circle</mat-icon>
+                <mat-card-title>
+                  {{ item.evidencia.titulo }}
+                  <mat-chip class="status-aprovado-final">
+                    <mat-icon>verified</mat-icon>
+                    Aprovado
+                  </mat-chip>
+                </mat-card-title>
+                <mat-card-subtitle>
+                  <strong>Obrigação:</strong> {{ item.obrigacaoTitulo }}
+                  <br>
+                  <strong>Unidade:</strong> {{ item.unidadeNome }}
+                </mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="aprovacao-info">
+                  <mat-icon>event</mat-icon>
+                  <span>Aprovado em {{ formatarData(item.evidencia.dataAprovacaoAcr) }}</span>
+                  <span *ngIf="item.evidencia.aprovadoAcrPor"> por {{ item.evidencia.aprovadoAcrPor }}</span>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-button (click)="visualizarObrigacao(item.obrigacaoId)">
+                  <mat-icon>visibility</mat-icon>
+                  Ver Obrigação
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</div>

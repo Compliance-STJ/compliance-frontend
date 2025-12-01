@@ -14,7 +14,9 @@
     <nav class="sidebar-nav">
       <a routerLink="/inicio" class="nav-item" routerLinkActive="active">Dashboard</a>
       <a routerLink="/normas" class="nav-item" routerLinkActive="active">Normas</a>
+      <a routerLink="/norma-manual" class="nav-item" routerLinkActive="active">📝 Criação Manual</a>
       <a routerLink="/situacoes-norma" class="nav-item" routerLinkActive="active">Situações de Norma</a>
+      <a *appHasPermission="{ resource: 'situacoes-aprovacao-norma', action: 'read' }" routerLink="/situacoes-aprovacao-norma" class="nav-item" routerLinkActive="active">Situações de Aprovação</a>
       <a routerLink="/situacoes-obrigacao" class="nav-item" routerLinkActive="active">Situações de Obrigação</a>
       <a routerLink="/origens" class="nav-item" routerLinkActive="active">Origens</a>
       <a routerLink="/obrigatoriedades" class="nav-item" routerLinkActive="active">Obrigatoriedades</a>

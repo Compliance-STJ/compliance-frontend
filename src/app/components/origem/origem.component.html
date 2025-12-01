@@ -194,20 +194,28 @@
     </div>
 
     <!-- Tabela de origens -->
-    <div *ngIf="!carregando && origens.length > 0" class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>Status</th>
-            <th>Data Início</th>
-            <th>Data Fim</th>
-            <th>Criado em</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div *ngIf="!carregando && origens.length > 0" class="data-table-container">
+      <div class="table-header">
+        <h3>📋 Lista de Origens</h3>
+        <div class="table-info">
+          {{origens.length}} origem(ns) encontrada(s)
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Status</th>
+              <th>Data Início</th>
+              <th>Data Fim</th>
+              <th>Criado em</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
           <tr *ngFor="let origem of origens">
             <td>
               <strong>{{origem.nome}}</strong>
@@ -263,6 +271,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>
